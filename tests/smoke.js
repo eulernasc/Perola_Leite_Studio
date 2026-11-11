@@ -57,6 +57,26 @@ assert.ok(P.reportsPage().includes('calendar-trigger'),'relatório deve usar cal
 assert.ok(P.financePage().includes('calendar-trigger'),'financeiro deve usar calendário customizado');
 assert.ok(P.calendarField('date','Data',P.today(),true).includes('calendar-trigger'),'agendamentos devem usar seletor próprio');
 assert.ok(P.settingsPage().includes('install-app'),'botão de instalação PWA configurado');
+const indexHTML=fs.readFileSync(path.join(project,'index.html'),'utf8');
+assert.match(indexHTML,/property="og:image"[^>]+social-preview\.png/,'imagem social Open Graph');
+assert.match(indexHTML,/site\.webmanifest/,'manifest PWA');
+assert.match(indexHTML,/pwa\.js/,'script de instalação');
+assert.match(indexHTML,/calendar-ui\.js/,'script de calendário');
+const manifest=JSON.parse(fs.readFileSync(path.join(project,'site.webmanifest'),'utf8'));
+assert.equal(manifest.display,'standalone');
+for(const asset of [
+ 'assets/brand-icon.svg','assets/social-preview.png','assets/favicon-32.png',
+ 'assets/icon-192.png','assets/icon-512.png','assets/icon-maskable-512.png','assets/apple-touch-icon.png'
+])assert.ok(fs.existsSync(path.join(project,asset)),'arquivo necessário: '+asset);
+const css=fs.readFileSync(path.join(project,'styles.css'),'utf8');
+assert.match(css,/image-uploader input\[type=file\]\.file-hidden/,'arquivo nativo oculto');
+assert.match(css,/picker-month-grid/,'calendário mensal do estúdio');
+assert.match(css,/\.field input\[type="checkbox"\]/,'checkbox personalizado');
+const forms=fs.readFileSync(path.join(project,'forms.js'),'utf8');
+assert.match(forms,/case 'install-app'/,'ação instalar');
+assert.match(forms,/case 'choose-image'/,'ação escolher foto');
+assert.doesNotMatch(forms,/type="date"/,'sem campos nativos de data nos formulários');
+
 assert.ok(P.agendaPage().includes('week-calendar') || P.agendaMode==='dia','agenda semanal com grade proporcional');
 
 const c={id:'cliente-ficticia',name:'Cliente Fictícia',cpf:'52998224725',address:'Rua Exemplo, 100'};
@@ -87,4 +107,4 @@ assert.equal(P.db.payments[0].snapshot.address,c.address,'endereço preservado')
 P.save();
 assert.ok(storage.get(P.key).includes('cliente-ficticia'),'persistência local');
 
-console.log('PASSOU: 7 telas, CPF, serviços, complementos, preços históricos, conflito, pagamentos, relatórios e armazenamento local.');
+console.log('PASSOU: 7 telas, CPF, serviços, complementos, preços históricos, conflito, pagamentos, calendários personalizados, PWA, prévia social, fotos e armazenamento local.');
