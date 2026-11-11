@@ -155,3 +155,48 @@
  .mobile-top .brand .brand-mark{width:35px;height:38px}
  .mobile-top .brand .brand-script{font-size:21px}
 }
+
+
+/* UX: modal sempre bloqueia fundo e usa apenas uma área de rolagem */
+body.modal-open{overflow:hidden!important;overscroll-behavior:none}
+.modal-wrap{overscroll-behavior:contain}
+.modal{overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d8c4b2 transparent}
+.modal .addons-picker{max-height:none;overflow:visible}
+.finance-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;min-width:151px}
+.finance-actions .btn{min-height:35px}
+@media(max-width:820px){.finance-actions{justify-content:flex-start;min-width:140px}}
+
+/* Seletor de horário do estúdio - campo inteiro clicável */
+.time-field .time-trigger{width:100%;min-height:50px;border:1px solid #e8ddd6;border-radius:12px;padding:12px 15px;
+ background:white;color:var(--ink);font-size:15px;font-weight:700;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:14px;
+ transition:.15s;cursor:pointer}
+.time-field .time-trigger:hover,.time-field .time-trigger:focus-visible{outline:0;border-color:var(--gold);box-shadow:0 0 0 3px #b18e6520}
+.time-field .time-trigger svg{width:19px;height:19px;color:var(--gold2);flex:none}
+.time-overlay{position:fixed;inset:0;z-index:180;pointer-events:none}
+.time-shade{position:absolute;inset:0;pointer-events:auto;background:transparent}
+.time-popover{position:absolute;top:50%;left:50%;width:365px;max-width:calc(100vw - 24px);background:#fffefa;
+ border:1px solid #e8d9cf;border-radius:20px;padding:19px;box-shadow:0 24px 70px #4a332b36;pointer-events:auto}
+.time-popover-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+.time-popover-head h3{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:500;margin:4px 0}
+.time-popover-head small{line-height:1.5;font-size:10px;display:block}
+.time-current{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#f8efe9;padding:10px 12px;border-radius:13px;margin-bottom:15px}
+.time-current label{color:var(--gold2);font-size:10px;font-weight:800;line-height:1.4}
+.time-current input{width:91px;padding:9px 10px!important;text-align:center;letter-spacing:.04em;border:1px solid #dcc7b4;border-radius:10px;
+ background:#fff!important;min-height:39px!important;font-weight:800;font-size:17px!important}
+.time-current>span{color:#ac9685;font-size:10px;font-weight:700}
+.time-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.time-col-title{font-size:10px;letter-spacing:.08em;color:var(--gold2);text-transform:uppercase;font-weight:800;margin-bottom:7px}
+.time-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:202px;overflow-y:auto;scrollbar-width:thin;padding:2px 3px 3px 0;overscroll-behavior:contain}
+.time-option{height:38px;min-width:0;border:1px solid #eee1d7;border-radius:10px;background:#fcf8f5;color:#6e5a4e;
+ font-weight:700;font-size:12px;cursor:pointer}
+.time-option:hover{background:#f5e6dc;border-color:#d9baa0}
+.time-option.selected{background:var(--gold2);border-color:var(--gold2);color:white}
+.time-popover-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+.time-popover-footer .btn{flex:1}
+@media(max-width:820px){
+ .time-shade{background:#362a255c;backdrop-filter:blur(2px)}
+ .time-popover{top:auto!important;left:0!important;bottom:0;right:0;max-width:100%;width:100%;
+  border-radius:24px 24px 0 0;padding:23px 19px calc(21px + env(safe-area-inset-bottom))}
+ .time-options{max-height:30dvh;min-height:150px}
+ .time-option{height:43px}
+}
