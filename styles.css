@@ -93,3 +93,9 @@
  .picker-month{height:48px}
 }
 @media(max-width:375px){.image-uploader .thumb{width:68px!important;height:78px!important}.image-uploader .image-controls strong{font-size:12px}.image-uploader .image-controls p{font-size:9px}}
+
+/* Explicações claras nos controles de preço e instalação */
+.toggle-copy{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:0}
+.toggle-copy strong{font-size:12px;font-weight:800;color:#6b5245}
+.toggle-copy small{font-size:10px;line-height:1.55;font-weight:500;color:#9d8577}
+@media(display-mode:standalone){[data-action="install-app"]{display:none!important}}
