@@ -45,6 +45,10 @@ assert.equal(P.db.services.length,7,'sete serviços iniciais');
 assert.equal(P.db.addons.length,5,'cinco complementos iniciais');
 assert.equal(P.cpfValid('529.982.247-25'),true);
 assert.equal(P.cpfValid('111.111.111-11'),false);
+assert.equal(P.phoneFormat('55555555555'),'(55) 55555-5555','celular brasileiro com nove dígitos');
+assert.equal(P.phoneFormat('3533334444'),'(35) 3333-4444','telefone fixo com oito dígitos');
+assert.equal(P.phoneFormat('(35) 99999-8888'),'(35) 99999-8888','máscara idempotente');
+assert.equal(P.phoneFormat(''),'', 'telefone opcional vazio');
 P.navItems.forEach(([page]) => {
   P.page=page;
   P.render();
@@ -93,6 +97,9 @@ const c={id:'cliente-ficticia',name:'Cliente Fictícia',cpf:'52998224725',
 assert.equal(P.formatAddress(c),'Rua Exemplo, 100, Sala 2 - Centro - Lavras/MG','endereço estruturado e bem formatado');
 P.db.clients.push(c);
 assert.ok(P.clientsPage().includes('Lavras/MG'),'listagem mostra endereço formatado');
+c.phone='35999998888';
+assert.ok(P.clientsPage().includes('(35) 99999-8888'),'listagem deve aplicar máscara');
+
 const a={
   id:'agendamento-teste',clientId:c.id,serviceId:'serv_1',
   serviceName:'Alongamento Completo',basePrice:185,serviceMinutes:90,
