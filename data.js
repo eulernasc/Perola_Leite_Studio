@@ -18,6 +18,15 @@
   P.norm = function (s) { return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); };
   P.digits = function (s) { return String(s||'').replace(/\D/g,''); };
   P.cpfFormat = function (s) { var d=P.digits(s).slice(0,11); return d.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1-$2'); };
+  P.phoneFormat = function (raw) {
+    var d=P.digits(raw).slice(0,11);
+    if(!d)return '';
+    if(d.length<=2)return '('+d;
+    var ddd='('+d.slice(0,2)+') ',rest=d.slice(2);
+    if(rest.length<=4)return ddd+rest;
+    var prefixLength=d.length===11?5:4;
+    return ddd+rest.slice(0,prefixLength)+'-'+rest.slice(prefixLength);
+  };
   P.cpfValid = function (raw) { var s=P.digits(raw); if(s.length!==11||/^(\d)\1+$/.test(s))return false; for(var t=9;t<11;t++){var sum=0;for(var k=0;k<t;k++)sum+=Number(s[k])*(t+1-k);var check=(sum*10)%11;if(check===10)check=0;if(check!==Number(s[t]))return false;}return true; };
   P.icons = {
     home:'<path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
