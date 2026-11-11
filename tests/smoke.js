@@ -8,6 +8,7 @@ const nodes = {
   app: {innerHTML:''},
   'page-root': {innerHTML:''},
   'modal-root': {innerHTML:''},
+  'calendar-root': {innerHTML:''},
   'toast-root': {innerHTML:''}
 };
 const storage = new Map();
@@ -36,7 +37,7 @@ const ctx = {
   URL,
 };
 vm.createContext(ctx);
-['data.js','app.js','forms.js'].forEach(name => {
+['data.js','calendar-ui.js','app.js','forms.js'].forEach(name => {
   vm.runInContext(fs.readFileSync(path.join(project,name),'utf8'),ctx,{filename:name});
 });
 const P = ctx.window.PL;
@@ -52,6 +53,11 @@ P.navItems.forEach(([page]) => {
 assert.ok(nodes.app.innerHTML.includes('Modo local')||P.page==='ajustes');
 assert.ok(P.reportsPage().includes('CPF'));
 assert.ok(P.reportsPage().includes('endereço'));
+assert.ok(P.reportsPage().includes('calendar-trigger'),'relatório deve usar calendário customizado');
+assert.ok(P.financePage().includes('calendar-trigger'),'financeiro deve usar calendário customizado');
+assert.ok(P.calendarField('date','Data',P.today(),true).includes('calendar-trigger'),'agendamentos devem usar seletor próprio');
+assert.ok(P.settingsPage().includes('install-app'),'botão de instalação PWA configurado');
+assert.ok(P.agendaPage().includes('week-calendar') || P.agendaMode==='dia','agenda semanal com grade proporcional');
 
 const c={id:'cliente-ficticia',name:'Cliente Fictícia',cpf:'52998224725',address:'Rua Exemplo, 100'};
 P.db.clients.push(c);
