@@ -72,15 +72,27 @@ const css=fs.readFileSync(path.join(project,'styles.css'),'utf8');
 assert.match(css,/image-uploader input\[type=file\]\.file-hidden/,'arquivo nativo oculto');
 assert.match(css,/picker-month-grid/,'calendário mensal do estúdio');
 assert.match(css,/\.field input\[type="checkbox"\]/,'checkbox personalizado');
+assert.ok(css.includes('.mobile-top .brand .brand-mark'),'borboleta acessível no topo mobile');
+assert.ok(css.includes('display:block!important'),'ícone visível mesmo com regra anterior de ocultação');
 const forms=fs.readFileSync(path.join(project,'forms.js'),'utf8');
 assert.match(forms,/case 'install-app'/,'ação instalar');
 assert.match(forms,/case 'choose-image'/,'ação escolher foto');
+for(const name of ['street','number','neighborhood','city','state','complement']){
+ assert.ok(forms.includes(name),'campo de endereço: '+name);
+}
+assert.ok(P.clientsPage().includes('Lavras/MG')===false,'listagem ainda vazia antes de incluir cliente');
 assert.doesNotMatch(forms,/type="date"/,'sem campos nativos de data nos formulários');
 
 assert.ok(P.agendaPage().includes('week-calendar') || P.agendaMode==='dia','agenda semanal com grade proporcional');
 
-const c={id:'cliente-ficticia',name:'Cliente Fictícia',cpf:'52998224725',address:'Rua Exemplo, 100'};
+const oldClient={name:'Cadastro anterior',address:'Avenida Antiga, 50'};
+assert.equal(P.formatAddress(oldClient),'Avenida Antiga, 50','endereço antigo continua acessível');
+const c={id:'cliente-ficticia',name:'Cliente Fictícia',cpf:'52998224725',
+  street:'Rua Exemplo',number:'100',neighborhood:'Centro',city:'Lavras',state:'MG',
+  complement:'Sala 2',address:'Rua Exemplo, 100'};
+assert.equal(P.formatAddress(c),'Rua Exemplo, 100, Sala 2 - Centro - Lavras/MG','endereço estruturado e bem formatado');
 P.db.clients.push(c);
+assert.ok(P.clientsPage().includes('Lavras/MG'),'listagem mostra endereço formatado');
 const a={
   id:'agendamento-teste',clientId:c.id,serviceId:'serv_1',
   serviceName:'Alongamento Completo',basePrice:185,serviceMinutes:90,
@@ -103,7 +115,7 @@ assert.equal(P.remaining(a),0);
 assert.equal(P.summaryFor(P.monthKey(a.date)).received,215);
 assert.equal(P.db.payments.length,2,'dois pagamentos separados');
 assert.equal(P.db.payments[0].snapshot.cpf,c.cpf,'CPF preservado');
-assert.equal(P.db.payments[0].snapshot.address,c.address,'endereço preservado');
+assert.equal(P.db.payments[0].snapshot.address,P.formatAddress(c),'endereço estruturado no lançamento');
 P.save();
 assert.ok(storage.get(P.key).includes('cliente-ficticia'),'persistência local');
 
