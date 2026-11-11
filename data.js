@@ -52,7 +52,7 @@
     ['Esmaltação em gel na manutenção',25,15,false],['Unha quebrada blindagem',5,10,true],['Esmaltação decorada',35,15,false],
     ['Francesinha',30,15,false],['Unha quebrada manutenção',7,10,true]
   ].map(function(x,i){return {id:'addon_'+(i+1),name:x[0],price:x[1],minutes:x[2],perUnit:x[3],description:i===1?'A partir de 4 unhas quebradas na blindagem, conferir o preço de novo alongamento.':'',image:'',active:true,serviceIds:[],thresholdQty:i===1?4:0,thresholdPrice:null};});
-  P.defaults = function(){return {version:1,clients:[],services:P.baseServices,addons:P.baseAddons,appointments:[],payments:[],expenses:[],blocks:[],settings:{studio:'Pérola Leite Studio',start:'07:00',end:'20:00',currency:'BRL'},createdAt:new Date().toISOString()};};
+  P.defaults = function(){return {version:1,clients:[],services:P.baseServices,addons:P.baseAddons,appointments:[],payments:[],expenses:[],auditLog:[],blocks:[],settings:{studio:'Pérola Leite Studio',start:'07:00',end:'20:00',currency:'BRL'},createdAt:new Date().toISOString()};};
   try { P.db = JSON.parse(localStorage.getItem(P.key)) || P.defaults(); if(!P.db || !Array.isArray(P.db.clients)||!Array.isArray(P.db.services)) throw Error('Formato inválido'); }
   catch(e){P.db=P.defaults();}
   P.save = function () { try {localStorage.setItem(P.key,JSON.stringify(P.db));return true;}catch(e){P.toast('Limite do armazenamento do navegador. Reduza as fotos ou faça um backup.','error');return false;} };
@@ -61,7 +61,7 @@
   P.items = function (a) {var serv=P.find('services',a.serviceId);var price=Number(a.priceOverride!=null?a.priceOverride:(a.basePrice!=null?a.basePrice:(serv?serv.price:0)));var rows=[{name:a.serviceName||(serv?serv.name:'Serviço removido'),price:price,qty:1,minutes:serv?Number(serv.minutes):90}];(a.addons||[]).forEach(function(x){var def=P.find('addons',x.id)||{};rows.push({name:x.name||def.name||'Complemento',price:x.specialTotal!=null?Number(x.specialTotal):Number(x.price),qty:x.specialTotal!=null?1:Number(x.qty)||1,displayQty:Number(x.qty)||1,minutes:Number(x.minutes)||0});});return rows;};
   P.total = function(a){ if(a.finalTotal!=null)return Number(a.finalTotal);return Math.max(0,P.items(a).reduce(function(sum,x){return sum+x.price*x.qty;},0)-Number(a.discount||0));};
   P.duration = function (a) {var s=P.find('services',a.serviceId);return Number(a.serviceMinutes!=null?a.serviceMinutes:(s?s.minutes:90))+(a.addons||[]).reduce(function(sum,x){return sum+(Number(x.minutes)||0)*(Number(x.qty)||1);},0);};
-  P.paid = function(id){return P.db.payments.filter(function(p){return p.appointmentId===id;}).reduce(function(s,p){return s+Number(p.amount||0);},0);};
+  P.paid = function(id){return P.db.payments.filter(function(p){return p.appointmentId===id&&!p.voided;}).reduce(function(s,p){return s+Number(p.amount||0);},0);};
   P.remaining = function(a){return Math.max(0,P.total(a)-P.paid(a.id));};
   P.clientLabel = function(id){var c=P.find('clients',id);return c?c.name:'Cliente não encontrado';};
   P.overlap = function(date,time,minutes,excludeId){var a=P.clockMins(time),b=a+Number(minutes);return P.db.appointments.some(function(x){return x.id!==excludeId&&x.date===date&&x.status!=='cancelado'&&a<P.clockMins(x.time)+P.duration(x)&&b>P.clockMins(x.time);})||P.db.blocks.some(function(x){return x.id!==excludeId&&x.date===date&&a<P.clockMins(x.end)&&b>P.clockMins(x.start);});};
@@ -77,7 +77,11 @@
     return [first,neighborhood,cityState].filter(Boolean).join(' - ');
   };
   P.snapshot = function(appt){var c=P.find('clients',appt.clientId)||{};return {clientName:c.name||'Cliente removida',cpf:c.cpf||'',address:P.formatAddress(c),street:c.street||'',number:c.number||'',neighborhood:c.neighborhood||'',city:c.city||'',state:c.state||'',complement:c.complement||'',serviceText:P.items(appt).map(function(x){return x.name+((x.displayQty||x.qty)>1?' x'+(x.displayQty||x.qty):'');}).join(' + '),serviceDate:appt.date};};
-  P.receive = function(appt,amount,method,date){var snap=appt.snapshot||P.snapshot(appt);P.db.payments.push({id:P.uid(),appointmentId:appt.id,amount:Number(amount),method:method,date:date||P.today(),snapshot:snap,createdAt:new Date().toISOString()});};
+  P.auditFinance = function(kind,action,id,before,after,reason){
+    if(!Array.isArray(P.db.auditLog))P.db.auditLog=[];
+    P.db.auditLog.push({id:P.uid(),kind:kind,action:action,recordId:id,at:new Date().toISOString(),reason:reason||'',before:before||null,after:after||null});
+  };
+  P.receive = function(appt,amount,method,date){var snap=appt.snapshot||P.snapshot(appt);var payment={id:P.uid(),appointmentId:appt.id,amount:Number(amount),method:method,date:date||P.today(),snapshot:snap,createdAt:new Date().toISOString()};P.db.payments.push(payment);P.auditFinance('recebimento','criado',payment.id,null,{amount:payment.amount,method:payment.method,date:payment.date},'Recebimento registrado');};
   P.toast = function(message,type){var host=document.getElementById('toast-root');if(!host)return;host.innerHTML='<div class="toast '+(type||'')+'">'+P.esc(message)+'</div>';clearTimeout(P.toastTimer);P.toastTimer=setTimeout(function(){host.innerHTML='';},3500);};
   P.badge = function(status){var names={agendado:'Agendado',confirmado:'Confirmado',concluido:'Concluído',cancelado:'Cancelado',bloqueado:'Bloqueado'};return '<span class="status '+P.esc(status)+'">'+(names[status]||P.esc(status))+'</span>';};
   P.csv = function(rows,filename){var content='\ufeff'+rows.map(function(row){return row.map(function(cell){return '"'+String(cell==null?'':cell).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');var link=document.createElement('a');link.href=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));link.download=filename;link.click();setTimeout(function(){URL.revokeObjectURL(link.href);},2000);};
