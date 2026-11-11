@@ -1,5 +1,5 @@
 /* Pérola Leite Studio — cache apenas de recursos públicos, nunca dados das clientes. */
-const CACHE_NAME = 'perola-leite-ui-v3';
+const CACHE_NAME = 'perola-leite-ui-v4';
 const OFFLINE_ASSETS = [
   './', './index.html', './styles.css', './data.js', './calendar-ui.js',
   './app.js', './forms.js', './pwa.js', './site.webmanifest',
@@ -34,15 +34,12 @@ self.addEventListener('fetch', event => {
     return;
   }
   event.respondWith(
-    caches.match(request).then(cached => {
-      const update = fetch(request).then(response => {
-        if (response.ok && url.pathname.includes('/Perola_Leite_Studio/')) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        }
-        return response;
-      }).catch(() => cached);
-      return cached || update;
-    })
+    fetch(request).then(response => {
+      if (response.ok && url.pathname.includes('/Perola_Leite_Studio/')) {
+        const copy=response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+      }
+      return response;
+    }).catch(() => caches.match(request))
   );
 });
