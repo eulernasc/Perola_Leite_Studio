@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+ <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fdfaf7"/><stop offset="1" stop-color="#f3e6dd"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9b584"/><stop offset=".56" stop-color="#9b7547"/><stop offset="1" stop-color="#cda878"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="114" fill="url(#paper)"/>
+<circle cx="118" cy="110" r="83" fill="#f4e2da" opacity=".7"/>
+<circle cx="410" cy="370" r="101" fill="#e8c3bb" opacity=".4"/>
+<rect x="24" y="24" width="464" height="464" rx="98" fill="none" stroke="#cba77d" stroke-width="3" opacity=".73"/>
+<g fill="none" stroke="#a88156" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M256 141 C206 98 172 104 180 139 C188 162 224 167 256 169 C225 183 216 201 229 210 C242 215 252 192 256 176"/>
+ <path d="M256 141 C306 98 340 104 332 139 C324 162 288 167 256 169 C287 183 296 201 283 210 C270 215 260 192 256 176"/>
+ <path d="M256 156 L256 197 M250 143 L239 132 M262 143 L273 132"/>
+</g>
+<text x="251" y="345" text-anchor="middle" font-size="218" font-family="Georgia, serif" font-style="italic" fill="url(#metal)">P</text>
+<path d="M172 371H340" stroke="#c8a478" stroke-width="2"/>
+<text x="256" y="412" text-anchor="middle" font-size="38" letter-spacing="5" font-family="Georgia, serif" fill="#8f6e4d">STUDIO</text>
+</svg>
