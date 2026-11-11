@@ -1,5 +1,5 @@
 /* Pérola Leite Studio — cache apenas de recursos públicos, nunca dados das clientes. */
-const CACHE_NAME = 'perola-leite-ui-v5';
+const CACHE_NAME = 'perola-leite-ui-v6';
 const OFFLINE_ASSETS = [
   './', './index.html', './styles.css', './data.js', './calendar-ui.js',
   './time-ui.js', './app.js', './forms.js', './pdf.js', './pwa.js', './site.webmanifest',
