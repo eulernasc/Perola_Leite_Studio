@@ -49,9 +49,9 @@
   P.save = function () { try {localStorage.setItem(P.key,JSON.stringify(P.db));return true;}catch(e){P.toast('Limite do armazenamento do navegador. Reduza as fotos ou faça um backup.','error');return false;} };
   P.find = function (type,id) {return (P.db[type]||[]).find(function(x){return x.id===id;});};
   P.active = function (type) {return (P.db[type]||[]).filter(function(x){return x.active!==false;});};
-  P.items = function (a) {var serv=P.find('services',a.serviceId);var price=Number(a.priceOverride || (a.priceOverride===0?0:(serv?serv.price:0)));var rows=[{name:a.serviceName||(serv?serv.name:'Serviço removido'),price:price,qty:1,minutes:serv?Number(serv.minutes):90}];(a.addons||[]).forEach(function(x){var def=P.find('addons',x.id)||{};rows.push({name:x.name||def.name||'Complemento',price:Number(x.price),qty:Number(x.qty)||1,minutes:Number(x.minutes)||0});});return rows;};
+  P.items = function (a) {var serv=P.find('services',a.serviceId);var price=Number(a.priceOverride!=null?a.priceOverride:(a.basePrice!=null?a.basePrice:(serv?serv.price:0)));var rows=[{name:a.serviceName||(serv?serv.name:'Serviço removido'),price:price,qty:1,minutes:serv?Number(serv.minutes):90}];(a.addons||[]).forEach(function(x){var def=P.find('addons',x.id)||{};rows.push({name:x.name||def.name||'Complemento',price:Number(x.price),qty:Number(x.qty)||1,minutes:Number(x.minutes)||0});});return rows;};
   P.total = function(a){ if(a.finalTotal!=null)return Number(a.finalTotal);return Math.max(0,P.items(a).reduce(function(sum,x){return sum+x.price*x.qty;},0)-Number(a.discount||0));};
-  P.duration = function (a) {var s=P.find('services',a.serviceId);return Number(s?s.minutes:90)+(a.addons||[]).reduce(function(sum,x){return sum+(Number(x.minutes)||0)*(Number(x.qty)||1);},0);};
+  P.duration = function (a) {var s=P.find('services',a.serviceId);return Number(a.serviceMinutes!=null?a.serviceMinutes:(s?s.minutes:90))+(a.addons||[]).reduce(function(sum,x){return sum+(Number(x.minutes)||0)*(Number(x.qty)||1);},0);};
   P.paid = function(id){return P.db.payments.filter(function(p){return p.appointmentId===id;}).reduce(function(s,p){return s+Number(p.amount||0);},0);};
   P.remaining = function(a){return Math.max(0,P.total(a)-P.paid(a.id));};
   P.clientLabel = function(id){var c=P.find('clients',id);return c?c.name:'Cliente não encontrado';};
