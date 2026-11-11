@@ -38,7 +38,20 @@
   }
   function blockModal(id){var b=P.find('blocks',id)||{};var body='<div class="field-grid">'+field('date','Data *',b.date||P.agendaDate,'date','required')+field('start','Início *',b.start||'12:00','time','required')+field('end','Fim *',b.end||'13:00','time','required')+'</div>'+textarea('note','Motivo / observação',b.note);frame(id?'Editar bloqueio':'Bloquear horário','block',body,formButtons('Salvar bloqueio',id?'<button type="button" class="btn danger" data-action="delete-block" data-id="'+id+'">Remover</button>':''));
   }
-  P.openModal=function(type,id){modalState={type:type,id:id||null,image:'',payments:[]};if(type==='client')clientModal(id);if(type==='item')itemModal(id);if(type==='appointment')appointmentModal(id);if(type==='view-appt')appointmentInfo(id);if(type==='complete')completionModal(id);if(type==='receive')receiveModal(id);if(type==='expense')expenseModal(id);if(type==='block')blockModal(id);};
+  function historyModal(id){
+    var client=P.find('clients',id);if(!client)return;
+    var list=P.db.appointments.filter(function(a){return a.clientId===id;}).sort(function(a,b){return (b.date+b.time).localeCompare(a.date+a.time);});
+    var received=list.reduce(function(n,a){return n+P.paid(a.id);},0);
+    var cards=list.map(function(a){
+      var service=a.serviceName||P.items(a)[0].name;
+      return '<button class="mini-item" type="button" data-action="show-appt" data-id="'+a.id+'" style="width:100%;text-align:left;cursor:pointer"><span class="time-pill">'+P.date(a.date)+'</span><span class="grow"><strong>'+E(service)+'</strong><small>'+E(a.time)+' · '+P.money(P.total(a))+' · Recebido '+P.money(P.paid(a.id))+'</small></span>'+P.badge(a.status)+'</button>';
+    }).join('');
+    var body='<div class="mini-item"><div class="grow"><strong>'+E(client.name)+'</strong><small>CPF: '+E(P.cpfFormat(client.cpf))+' · '+E(client.phone||'Sem telefone')+'</small><small>'+E(client.address||'Endereço não informado')+'</small></div></div>'+
+      '<div class="finance-summary"><div class="card stat"><div class="fin-label">Atendimentos</div><div class="fin-total">'+list.length+'</div></div><div class="card stat"><div class="fin-label">Total recebido</div><div class="fin-total">'+P.money(received)+'</div></div></div>'+
+      '<h3>Histórico de atendimentos</h3><div class="mini-list">'+(cards||P.empty('calendar','Sem atendimentos','Esta cliente ainda não possui agendamentos.'))+'</div>';
+    frame('Histórico da cliente',null,body,'<button type="button" class="btn soft" data-action="edit-client" data-id="'+id+'">'+I('edit')+'Editar cadastro</button><button type="button" class="btn" data-action="close-modal">Fechar</button>');
+  }
+  P.openModal=function(type,id){modalState={type:type,id:id||null,image:'',payments:[]};if(type==='client')clientModal(id);if(type==='history')historyModal(id);if(type==='item')itemModal(id);if(type==='appointment')appointmentModal(id);if(type==='view-appt')appointmentInfo(id);if(type==='complete')completionModal(id);if(type==='receive')receiveModal(id);if(type==='expense')expenseModal(id);if(type==='block')blockModal(id);};
   P.closeModal=function(){root.innerHTML='';modalState={};};
   function notifySaved(msg){if(!P.save())return;P.closeModal();P.render();P.toast(msg||'Salvo com sucesso.');}
   function updateBookingPreview(){var form=root.querySelector('[data-form="appointment"]');if(!form)return;var serv=P.find('services',form.elements.serviceId.value);var sid=serv?serv.id:'';root.querySelectorAll('[data-addon-row]').forEach(function(r){var a=P.find('addons',r.dataset.addonRow);r.style.display=(a&&(!(a.serviceIds||[]).length||a.serviceIds.includes(sid)))?'flex':'none';if(r.style.display==='none'){var cb=r.querySelector('input[type=checkbox]');if(cb)cb.checked=false;}});var total=Number(form.elements.priceOverride.value===''?(serv?serv.price:0):form.elements.priceOverride.value);root.querySelectorAll('input[name="addonCheck"]:checked').forEach(function(el){var a=P.find('addons',el.value);var qtyField=form.elements['qty_'+el.value];if(a){var qty=Number(qtyField?qtyField.value:1);if(a.thresholdQty>0&&qty>=a.thresholdQty){if(a.thresholdPrice==null){total=NaN;}else{total+=Number(a.thresholdPrice);}}else{total+=Number(a.price)*qty;}}});var el=root.querySelector('#booking-total');if(el)el.textContent=Number.isFinite(total)?P.money(total):'Configure o preço especial';}
@@ -62,7 +75,7 @@
     var w=window.open('','_blank');if(!w){P.toast('O navegador bloqueou a janela. Permita pop-ups para salvar o PDF.','error');return;}w.document.open();w.document.write(body);w.document.close();w.focus();setTimeout(function(){w.print();},400);}
   function action(el,ev){var type=el.dataset.action,id=el.dataset.id;switch(type){
     case 'page':P.page=el.dataset.page;P.render();window.scrollTo(0,0);break;
-    case 'new-client':P.openModal('client');break;case 'edit-client':P.openModal('client',id);break;
+    case 'new-client':P.openModal('client');break;case 'history-client':P.openModal('history',id);break;case 'edit-client':P.openModal('client',id);break;
     case 'new-item':P.openModal('item');break;case 'edit-item':P.openModal('item',id);break;
     case 'new-appt':P.openModal('appointment');break;case 'edit-appt':P.openModal('appointment',id);break;case 'show-appt':P.openModal('view-appt',id);break;
     case 'complete':P.openModal('complete',id);break;case 'receive':P.openModal('receive',id);break;
