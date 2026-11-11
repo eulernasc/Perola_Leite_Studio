@@ -9,13 +9,19 @@ const nodes = {
   'page-root': {innerHTML:''},
   'modal-root': {innerHTML:''},
   'calendar-root': {innerHTML:''},
+  'time-root': {innerHTML:''},
   'toast-root': {innerHTML:''}
 };
 const storage = new Map();
+const downloads=[];
+let lastPdfBlob=null;
 const document = {
   getElementById: id => nodes[id] || null,
   addEventListener: () => {},
-  querySelectorAll: () => []
+  querySelectorAll: () => [],
+  createElement: tag => ({ href:'', download:'', click(){downloads.push(this.download)}, remove(){} }),
+  body: {appendChild(){}},
+  documentElement: {classList:{add(){},remove(){},contains(){return false;}}}
 };
 const ctx = {
   window: {innerWidth: 390},
@@ -34,10 +40,11 @@ const ctx = {
   Array,
   JSON,
   Intl,
-  URL,
+  URL: {createObjectURL(blob){lastPdfBlob=blob;return 'blob:test'},revokeObjectURL(){}},
+  Blob,
 };
 vm.createContext(ctx);
-['data.js','calendar-ui.js','app.js','forms.js'].forEach(name => {
+['data.js','calendar-ui.js','time-ui.js','app.js','forms.js','pdf.js'].forEach(name => {
   vm.runInContext(fs.readFileSync(path.join(project,name),'utf8'),ctx,{filename:name});
 });
 const P = ctx.window.PL;
@@ -61,11 +68,18 @@ assert.ok(P.reportsPage().includes('calendar-trigger'),'relatório deve usar cal
 assert.ok(P.financePage().includes('calendar-trigger'),'financeiro deve usar calendário customizado');
 assert.ok(P.calendarField('date','Data',P.today(),true).includes('calendar-trigger'),'agendamentos devem usar seletor próprio');
 assert.ok(P.settingsPage().includes('install-app'),'botão de instalação PWA configurado');
+assert.ok(P.timeField('time','Horário','09:00',true).includes('data-time-trigger'),'seletor inteiro clicável');
+assert.ok(P.homePage().includes('data-action="new-client"'),'atalho para cadastrar cliente no início');
+assert.ok(P.financePage().includes('data-action="new-expense"'),'financeiro com ação de despesa');
 const indexHTML=fs.readFileSync(path.join(project,'index.html'),'utf8');
 assert.match(indexHTML,/property="og:image"[^>]+social-preview\.png/,'imagem social Open Graph');
 assert.match(indexHTML,/site\.webmanifest/,'manifest PWA');
 assert.match(indexHTML,/pwa\.js/,'script de instalação');
 assert.match(indexHTML,/calendar-ui\.js/,'script de calendário');
+assert.match(indexHTML,/time-ui\.js/,'script de horário');
+assert.match(indexHTML,/pdf\.js/,'gerador PDF direto');
+assert.equal((indexHTML.match(/src="\.\/pdf\.js"/g)||[]).length,1,'PDF carregado apenas uma vez');
+assert.equal((indexHTML.match(/src="\.\/time-ui\.js"/g)||[]).length,1,'horário carregado apenas uma vez');
 const manifest=JSON.parse(fs.readFileSync(path.join(project,'site.webmanifest'),'utf8'));
 assert.equal(manifest.display,'standalone');
 for(const asset of [
@@ -75,12 +89,20 @@ for(const asset of [
 const css=fs.readFileSync(path.join(project,'styles.css'),'utf8');
 assert.match(css,/image-uploader input\[type=file\]\.file-hidden/,'arquivo nativo oculto');
 assert.match(css,/picker-month-grid/,'calendário mensal do estúdio');
+assert.match(css,/body\.modal-open/,'trava de rolagem do fundo');
+assert.match(css,/\.time-trigger/,'seletor de hora personalizado');
 assert.match(css,/\.field input\[type="checkbox"\]/,'checkbox personalizado');
 assert.ok(css.includes('.mobile-top .brand .brand-mark'),'borboleta acessível no topo mobile');
 assert.ok(css.includes('display:block!important'),'ícone visível mesmo com regra anterior de ocultação');
 const forms=fs.readFileSync(path.join(project,'forms.js'),'utf8');
 assert.match(forms,/case 'install-app'/,'ação instalar');
 assert.match(forms,/case 'choose-image'/,'ação escolher foto');
+assert.match(forms,/case 'edit-payment'/,'editar recebimento');
+assert.match(forms,/case 'void-payment'/,'excluir recebimento com auditoria');
+assert.match(forms,/case 'void-expense'/,'excluir despesas com auditoria');
+assert.match(forms,/case 'delete-appt'/,'excluir agendamento');
+assert.match(forms,/P\.generatePDF\(\)/,'download direto do PDF');
+assert.doesNotMatch(forms,/\.print\(\)/,'não deve abrir impressão');
 for(const name of ['street','number','neighborhood','city','state','complement']){
  assert.ok(forms.includes(name),'campo de endereço: '+name);
 }
@@ -123,7 +145,25 @@ assert.equal(P.summaryFor(P.monthKey(a.date)).received,215);
 assert.equal(P.db.payments.length,2,'dois pagamentos separados');
 assert.equal(P.db.payments[0].snapshot.cpf,c.cpf,'CPF preservado');
 assert.equal(P.db.payments[0].snapshot.address,P.formatAddress(c),'endereço estruturado no lançamento');
+assert.ok(P.financePage().includes('data-action="edit-payment"'),'financeiro exibe editar recebimento');
+assert.ok(P.financePage().includes('data-action="void-payment"'),'financeiro exibe excluir recebimento');
+const pdf=P.generatePDF();
+assert.ok(pdf.pages>=1,'PDF tem pelo menos uma página');
+assert.ok(pdf.size>1400,'PDF deve conter estrutura e lançamentos');
+assert.ok(downloads.some(name=>name.endsWith('.pdf')),'PDF baixado sem abrir impressora');
+assert.ok(lastPdfBlob,'PDF como Blob válido');
+P.db.payments[0].voided=true;
+P.auditFinance('recebimento','excluido',P.db.payments[0].id,{amount:120},{voided:true},'Teste');
+assert.equal(P.paid(a.id),95,'recebimento estornado sai do saldo');
+assert.equal(P.summaryFor(P.monthKey(a.date)).received,95,'estorno sai do financeiro');
+assert.equal(P.remaining(a),120,'valor estornado volta a receber');
+assert.ok(P.db.auditLog.some(log=>log.action==='excluido'),'auditoria de exclusão preservada');
+P.db.expenses.push({id:'expense-test',title:'Material fictício',date:P.today(),amount:35,method:'Pix',category:'Materiais'});
+assert.equal(P.summaryFor(P.monthKey(a.date)).spent,35,'despesa registrada entra no saldo');
+P.db.expenses[0].voided=true;
+assert.equal(P.summaryFor(P.monthKey(a.date)).spent,0,'despesa excluída sai do saldo');
+
 P.save();
 assert.ok(storage.get(P.key).includes('cliente-ficticia'),'persistência local');
 
-console.log('PASSOU: 7 telas, CPF, serviços, complementos, preços históricos, conflito, pagamentos, calendários personalizados, PWA, prévia social, fotos e armazenamento local.');
+console.log('PASSOU: agenda, horário, modal, financeiro com auditoria, exclusões, PDF direto, PWA e persistência.');
