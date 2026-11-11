@@ -90,6 +90,8 @@ const css=fs.readFileSync(path.join(project,'styles.css'),'utf8');
 assert.match(css,/image-uploader input\[type=file\]\.file-hidden/,'arquivo nativo oculto');
 assert.match(css,/picker-month-grid/,'calendário mensal do estúdio');
 assert.match(css,/body\.modal-open/,'trava de rolagem do fundo');
+assert.match(css,/\.mobile-week-sticky\s*\{/,'faixa sticky de dias');
+assert.match(css,/position:sticky;/,'sticky position no celular');
 assert.match(css,/\.time-trigger/,'seletor de hora personalizado');
 assert.match(css,/\.field input\[type="checkbox"\]/,'checkbox personalizado');
 assert.ok(css.includes('.mobile-top .brand .brand-mark'),'borboleta acessível no topo mobile');
@@ -110,6 +112,28 @@ assert.ok(P.clientsPage().includes('Lavras/MG')===false,'listagem ainda vazia an
 assert.doesNotMatch(forms,/type="date"/,'sem campos nativos de data nos formulários');
 
 assert.ok(P.agendaPage().includes('week-calendar') || P.agendaMode==='dia','agenda semanal com grade proporcional');
+P.agendaMode='semana';
+P.page='agenda';
+const stickyHTML=P.agendaPage();
+assert.match(stickyHTML,/id="mobile-week-sticky"/,'dias da semana fixos na agenda mobile');
+assert.match(stickyHTML,/id="week-sticky-scroll"/,'faixa de dias com rolagem sincronizada');
+assert.match(stickyHTML,/id="week-calendar-grid"/,'grade semanal com identificador para sincronização');
+assert.equal((stickyHTML.match(/data-action="select-day"/g)||[]).length,14,'sete dias no desktop e sete na faixa fixa do mobile');
+const captures={};
+function scrollingElement(){return {scrollLeft:0,clientWidth:390,addEventListener(type,fn){this[type]=fn;}};}
+const fakeGrid=scrollingElement(),fakeDays=scrollingElement(),fakeStrip={style:{}};
+nodes['week-calendar-grid']=fakeGrid;
+nodes['week-sticky-scroll']=fakeDays;
+nodes['mobile-week-sticky']=fakeStrip;
+document.querySelector=()=>({getBoundingClientRect:()=>({height:73})});
+P.setupAgendaSticky();
+assert.equal(fakeStrip.style.top,'73px','faixa fixa respeita altura da logo');
+fakeGrid.scrollLeft=250;fakeGrid.scroll();
+assert.equal(fakeDays.scrollLeft,250,'cabeçalho acompanha a grade horizontal');
+fakeDays.scrollLeft=105;fakeDays.scroll();
+assert.equal(fakeGrid.scrollLeft,105,'grade acompanha a faixa horizontal');
+delete nodes['week-calendar-grid'];delete nodes['week-sticky-scroll'];delete nodes['mobile-week-sticky'];
+P.agendaMode='dia';P.page='inicio';
 
 const oldClient={name:'Cadastro anterior',address:'Avenida Antiga, 50'};
 assert.equal(P.formatAddress(oldClient),'Avenida Antiga, 50','endereço antigo continua acessível');
