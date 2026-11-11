@@ -56,7 +56,18 @@
   P.remaining = function(a){return Math.max(0,P.total(a)-P.paid(a.id));};
   P.clientLabel = function(id){var c=P.find('clients',id);return c?c.name:'Cliente não encontrado';};
   P.overlap = function(date,time,minutes,excludeId){var a=P.clockMins(time),b=a+Number(minutes);return P.db.appointments.some(function(x){return x.id!==excludeId&&x.date===date&&x.status!=='cancelado'&&a<P.clockMins(x.time)+P.duration(x)&&b>P.clockMins(x.time);})||P.db.blocks.some(function(x){return x.id!==excludeId&&x.date===date&&a<P.clockMins(x.end)&&b>P.clockMins(x.start);});};
-  P.snapshot = function(appt){var c=P.find('clients',appt.clientId)||{};return {clientName:c.name||'Cliente removida',cpf:c.cpf||'',address:c.address||'',serviceText:P.items(appt).map(function(x){return x.name+((x.displayQty||x.qty)>1?' x'+(x.displayQty||x.qty):'');}).join(' + '),serviceDate:appt.date};};
+  P.formatAddress = function(client) {
+    var c=client||{};
+    var street=String(c.street||'').trim(), number=String(c.number||'').trim();
+    var neighborhood=String(c.neighborhood||'').trim(), complement=String(c.complement||'').trim();
+    var city=String(c.city||'').trim(), state=String(c.state||'').trim().toUpperCase();
+    if(!street&&!number&&!neighborhood&&!city&&!state&&!complement)return String(c.address||'').trim();
+    var first=[street,number].filter(Boolean).join(', ');
+    if(complement)first+=(first?', ':'')+complement;
+    var cityState=[city,state].filter(Boolean).join('/');
+    return [first,neighborhood,cityState].filter(Boolean).join(' - ');
+  };
+  P.snapshot = function(appt){var c=P.find('clients',appt.clientId)||{};return {clientName:c.name||'Cliente removida',cpf:c.cpf||'',address:P.formatAddress(c),street:c.street||'',number:c.number||'',neighborhood:c.neighborhood||'',city:c.city||'',state:c.state||'',complement:c.complement||'',serviceText:P.items(appt).map(function(x){return x.name+((x.displayQty||x.qty)>1?' x'+(x.displayQty||x.qty):'');}).join(' + '),serviceDate:appt.date};};
   P.receive = function(appt,amount,method,date){var snap=appt.snapshot||P.snapshot(appt);P.db.payments.push({id:P.uid(),appointmentId:appt.id,amount:Number(amount),method:method,date:date||P.today(),snapshot:snap,createdAt:new Date().toISOString()});};
   P.toast = function(message,type){var host=document.getElementById('toast-root');if(!host)return;host.innerHTML='<div class="toast '+(type||'')+'">'+P.esc(message)+'</div>';clearTimeout(P.toastTimer);P.toastTimer=setTimeout(function(){host.innerHTML='';},3500);};
   P.badge = function(status){var names={agendado:'Agendado',confirmado:'Confirmado',concluido:'Concluído',cancelado:'Cancelado',bloqueado:'Bloqueado'};return '<span class="status '+P.esc(status)+'">'+(names[status]||P.esc(status))+'</span>';};
