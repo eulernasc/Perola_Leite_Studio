@@ -23,6 +23,16 @@ Protótipo administrativo mobile-first para a nail designer Pérola Leite Studio
 9. Relatório mensal com resumo, detalhes cronológicos, nome, CPF, endereço, serviço, formas de pagamento, datas e valores.
 10. Exportação CSV, visualização para imprimir/salvar PDF e backup JSON.
 
+## Identidade visual e instalação PWA
+
+A identidade do protótipo utiliza off-white, nude, rosé e dourado, com **borboleta dourada** no símbolo do estúdio. Os arquivos `assets/brand-icon.svg` e `assets/social-preview.svg` são as fontes editáveis. O workflow `assets.yml` gera os PNGs usados como favicon, ícone instalado e miniatura do WhatsApp. A imagem de compartilhamento é configurada com meta tags Open Graph no `index.html`.
+
+Acesse o site em HTTPS e use **Instalar aplicativo** na Visão geral ou em Configurações. No Android/Chrome, confirme a solicitação do navegador; no iPhone/Safari, use Compartilhar > Adicionar à Tela de Início. Um service worker mantém os recursos públicos do aplicativo disponíveis no cache para abertura sem rede em cenários compatíveis.
+
+**A instalação NÃO cria um banco de dados, login nem sincronização.** Os registros ainda ficam apenas no armazenamento local do navegador/perfil. Utilize somente clientes fictícias até implementarmos autenticação e armazenamento seguro.
+
+Os seletores de mês e dia usam o calendário personalizado do estúdio; seleção de foto e checkboxes também têm aparência própria.
+
 ## Como testar
 
 Com o repositório aberto na branch `desenvolvimento`, rode um servidor HTTP local para evitar restrições do navegador ao abrir arquivos diretamente:
