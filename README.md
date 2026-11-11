@@ -7,7 +7,7 @@ Protótipo administrativo mobile-first para a nail designer Pérola Leite Studio
 - **Branch de testes:** `desenvolvimento`.
 - **Branch de produção:** `main` (não alterada nesta etapa).
 - **Dados:** somente no `localStorage` do navegador. Não há backend, autenticação real ou sincronização entre aparelhos.
-- **Hospedagem de testes:** GitHub Pages, por workflow do GitHub Actions quando a fonte do Pages está configurada como **GitHub Actions**.
+- **Hospedagem de testes:** GitHub Pages configurado em **Deploy from a branch**, branch **desenvolvimento**, pasta **/(root)**. O workflow GitHub Actions executa apenas os testes de sintaxe e regras de negócio.
 - **Design:** off-white, nude, rosé suave e dourado. A logomarca dourada exibida nesta versão é uma representação tipográfica temporária, até integrar o arquivo original.
 
 ## Funcionalidades do protótipo
@@ -31,7 +31,7 @@ Com o repositório aberto na branch `desenvolvimento`, rode um servidor HTTP loc
 python -m http.server 8000
 ```
 
-Abra `http://localhost:8000`. Também é possível usar o endereço do GitHub Pages após o workflow publicar.
+Abra `http://localhost:8000`. Após configurar Settings > Pages > Deploy from a branch > desenvolvimento > /(root) > Save, a publicação do GitHub Pages ocorrerá pela branch, de forma independente dos testes do Actions.
 
 Fluxo sugerido: cadastre uma **cliente fictícia**, agende o serviço e um complemento, abra o atendimento pela agenda, conclua e registre o recebimento. Confira depois Financeiro e Relatórios. Teste pagamentos em duas formas e um saldo pendente.
 
