@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fcfaf7"/><stop offset=".55" stop-color="#f7ece5"/><stop offset="1" stop-color="#f0dad4"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d6b185"/><stop offset=".5" stop-color="#9d784a"/><stop offset="1" stop-color="#c9a376"/></linearGradient>
+  <radialGradient id="pearl"><stop stop-color="#fffefd"/><stop offset=".5" stop-color="#fffbf7"/><stop offset="1" stop-color="#dbc3b5"/></radialGradient>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<path d="M0 0 H1200 V40 C900 100 750 30 560 70 C350 110 160 80 0 120Z" fill="#fff" opacity=".34"/>
+<circle cx="1080" cy="35" r="220" fill="#f7e2da" opacity=".68"/>
+<circle cx="1130" cy="520" r="270" fill="#eaccc4" opacity=".47"/>
+<circle cx="1010" cy="310" r="150" fill="#fdf5ed" opacity=".5"/>
+<path d="M790 90C960 160 1040 240 1190 115M760 570C940 450 1020 510 1200 400" fill="none" stroke="#cda983" stroke-width="2" opacity=".45"/>
+<rect x="42" y="42" width="1116" height="546" rx="24" fill="none" stroke="#c2a17b" stroke-width="2" opacity=".72"/>
+<rect x="64" y="64" width="1072" height="502" rx="15" fill="none" stroke="#e3c7b3" stroke-width="1"/>
+<g fill="none" stroke="#b08a5d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(160 145)">
+ <path d="M60 6 C8 -26 -5 -1 21 24 C37 38 52 34 60 36 C39 49 37 67 52 71 C62 74 65 56 60 37"/>
+ <path d="M60 6 C112 -26 125 -1 99 24 C83 38 68 34 60 36 C81 49 83 67 68 71 C58 74 55 56 60 37"/>
+ <path d="M60 28V60 M53 17L44 7 M67 17L76 7"/>
+</g>
+<text x="130" y="340" font-size="110" font-family="Georgia, 'Times New Roman', serif" font-style="italic" fill="url(#gold)">Pérola Leite</text>
+<text x="142" y="398" font-size="36" font-family="Georgia, serif" letter-spacing="15" fill="#684e40">STUDIO</text>
+<path d="M140 435H630" stroke="#c9aa8c" stroke-width="2"/>
+<text x="143" y="480" font-size="27" font-family="Georgia, serif" fill="#776056">Beleza nos detalhes. Organização na rotina.</text>
+<g>
+ <circle cx="953" cy="210" r="74" fill="url(#pearl)" opacity=".86"/>
+ <circle cx="1058" cy="294" r="41" fill="url(#pearl)" opacity=".9"/>
+ <circle cx="880" cy="365" r="46" fill="url(#pearl)" opacity=".92"/>
+ <circle cx="1044" cy="440" r="80" fill="url(#pearl)" opacity=".73"/>
+ <circle cx="937" cy="497" r="28" fill="url(#pearl)" opacity=".95"/>
+</g>
+<text x="146" y="548" font-size="18" font-family="Georgia, serif" letter-spacing="3" fill="#9b7855">AGENDA  ·  CLIENTES  ·  FINANCEIRO</text>
+</svg>
