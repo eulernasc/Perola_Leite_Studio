@@ -19,3 +19,77 @@
 .week-calendar .time-booking strong{font-size:10px;line-height:1.2}
 .week-calendar .time-booking .book-service{font-size:9px;line-height:1.2}
 @media(max-width:820px){.week-days{min-width:875px}.week-calendar .agenda-days,.week-calendar .week-columns{width:100%}.week-time-column{flex-basis:58px}.week-time-title{font-size:8px}.week-calendar .time-booking{padding:6px}}
+
+
+/* V3 · controles e calendário próprios do Pérola Leite Studio */
+.field input[type="checkbox"],.field input[type="radio"],.addon-row input[type="checkbox"],.toggle input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;flex:0 0 19px;width:19px!important;height:19px!important;min-height:19px!important;max-width:19px!important;
+  border:1.5px solid #cdb69e!important;border-radius:6px!important;background:#fff!important;padding:0!important;margin:0!important;
+  display:inline-grid;place-items:center;cursor:pointer;box-shadow:none!important;vertical-align:middle;transition:.15s;
+}
+.field input[type="checkbox"]:checked,.addon-row input[type="checkbox"]:checked,.toggle input[type="checkbox"]:checked{background:var(--gold)!important;border-color:var(--gold)!important}
+.field input[type="checkbox"]:checked::after,.addon-row input[type="checkbox"]:checked::after,.toggle input[type="checkbox"]:checked::after{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+.field label.toggle,.toggle{display:flex!important;align-items:center;justify-content:flex-start;gap:11px;padding:13px 15px;border-radius:12px;background:#fdf8f4;border:1px solid var(--line);line-height:1.5;font-size:12px;font-weight:600;color:#755e51;cursor:pointer}
+.field .search{width:100%;min-width:0}
+.field .search input,.search input{padding:12px 14px 12px 42px!important;border-radius:12px!important;font-size:13px!important}
+.search svg{z-index:2;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:#aa8d6f;width:17px;height:17px}
+.image-uploader{padding:19px!important;gap:16px!important;border-radius:16px!important;align-items:center!important;background:linear-gradient(135deg,#fffcf9,#f9efe8);border:1px dashed #d6bdaa!important}
+.image-uploader .thumb{width:102px!important;height:102px!important;border-radius:14px!important;background:#f2e5db!important;color:var(--gold2)}
+.image-uploader .thumb svg{width:43px;height:43px;stroke-width:1.35}
+.image-uploader .image-controls{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.image-uploader .image-controls strong{font-size:13px;color:#745d51;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.image-uploader .image-controls p{margin:0!important;max-width:350px;line-height:1.6}
+.image-uploader input[type=file].file-hidden{display:none!important;visibility:hidden;width:0!important;height:0!important;min-height:0!important}
+.image-buttons{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.image-buttons .btn{font-size:12px}
+.image-buttons [hidden]{display:none!important}
+.field-grid>.field.full>.field{width:100%}
+.month-control{min-width:245px;max-width:360px;width:100%}
+.calendar-field .calendar-trigger,.month-control .calendar-trigger{min-height:49px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;
+ padding:12px 15px;color:var(--ink);background:#fff;border:1px solid #e8ddd6;border-radius:12px;text-align:left;font-size:13px;font-weight:600;transition:.2s;box-shadow:none}
+.calendar-field .calendar-trigger:hover,.calendar-field .calendar-trigger:focus-visible{border-color:var(--gold);box-shadow:0 0 0 3px #b18e651c;outline:0}
+.calendar-field .calendar-trigger svg{height:19px;width:19px;color:var(--gold2);flex:none}
+.calendar-overlay{position:fixed;inset:0;z-index:150;pointer-events:none}
+.calendar-shade{position:absolute;inset:0;background:transparent;pointer-events:auto}
+.calendar-popover{position:absolute;top:50%;left:50%;transform:none;width:334px;max-width:calc(100vw - 24px);
+ background:#fffefa;border:1px solid #e9ddd4;border-radius:20px;box-shadow:0 22px 70px #55403530;
+ padding:20px;pointer-events:auto;animation:calendar-reveal .16s ease-out}
+@keyframes calendar-reveal{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.picker-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:19px;gap:12px}
+.picker-top strong{display:block;font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:500;margin-top:4px}
+.picker-eyebrow{font-size:9px;color:var(--gold2);font-weight:800;letter-spacing:.16em}
+.picker-dismiss{height:30px;width:30px;display:grid;place-items:center;background:#f6eee7;border:0;border-radius:9px;color:#8c6e55}
+.picker-dismiss svg{height:16px;width:16px}
+.picker-nav{display:flex;align-items:center;justify-content:space-between;padding:7px 0 18px;border-bottom:1px solid var(--line);margin-bottom:13px;gap:10px}
+.picker-nav button{display:grid;place-items:center;background:#f8efe9;border:1px solid #efe4dd;color:var(--gold2);border-radius:10px;width:33px;height:33px}
+.picker-nav button:hover{background:#efdfd1}
+.picker-nav button svg{height:16px;width:16px}
+.picker-month-heading{font-family:'Playfair Display',Georgia,serif;font-size:17px;color:#574038;font-weight:500}
+.picker-month-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:8px 0 18px}
+.picker-month,.picker-day{border:1px solid transparent;background:#fdf8f4;border-radius:11px;color:#755e51;height:49px;font-size:12px;font-weight:700;display:grid;place-items:center;transition:.12s}
+.picker-month:hover,.picker-day:hover{background:#f4e8de;border-color:#e8d5c2;color:var(--gold2)}
+.picker-month.is-selected,.picker-day.is-selected{background:var(--gold2);border-color:var(--gold2);color:#fff;box-shadow:0 5px 12px #b18e6533}
+.picker-month.is-current:not(.is-selected),.picker-day.is-current:not(.is-selected){border-color:#cba885;color:var(--gold2);background:#faf1e9}
+.picker-day-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding:3px 0 17px}
+.picker-week-label{text-align:center;font-size:9px;text-transform:uppercase;color:#a18d80;font-weight:800;padding:5px 0 9px}
+.picker-day,.picker-day-blank{height:36px;min-width:0;font-size:11px;border-radius:9px}
+.picker-day-blank{pointer-events:none}
+.picker-footer{display:flex;justify-content:space-between;gap:9px;border-top:1px solid var(--line);padding-top:14px}
+.picker-shortcut{background:transparent;border:0;color:var(--gold2);font-weight:800;font-size:12px;padding:7px 8px;border-radius:8px}
+.picker-shortcut:hover{background:#f7eee7}
+.pwa-install-btn{display:inline-flex}
+.pwa-install-btn svg{height:16px;width:16px}
+@media(max-width:820px){
+ .calendar-overlay .calendar-shade{background:#392b2566;backdrop-filter:blur(2px)}
+ .calendar-popover{position:absolute;top:auto!important;left:0!important;right:0;bottom:0;width:100%;max-width:100%;
+ border-radius:24px 24px 0 0;padding:23px 22px calc(23px + env(safe-area-inset-bottom));box-shadow:0 -16px 60px #392b2533;animation:calendar-mobile .18s ease-out}
+ @keyframes calendar-mobile{from{opacity:.6;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+ .month-control{max-width:100%;min-width:0}
+ .image-uploader{padding:13px!important;align-items:flex-start!important}
+ .image-uploader .thumb{width:80px!important;height:84px!important}
+ .image-uploader .image-controls p{font-size:10px}
+ .image-buttons{gap:5px}
+ .image-buttons .btn{min-height:37px;padding:9px}
+ .picker-month{height:48px}
+}
+@media(max-width:375px){.image-uploader .thumb{width:68px!important;height:78px!important}.image-uploader .image-controls strong{font-size:12px}.image-uploader .image-controls p{font-size:9px}}
