@@ -55,7 +55,7 @@
   P.defaults = function(){return {version:1,clients:[],services:P.baseServices,addons:P.baseAddons,appointments:[],payments:[],expenses:[],auditLog:[],blocks:[],settings:{studio:'Pérola Leite Studio',start:'07:00',end:'20:00',currency:'BRL'},createdAt:new Date().toISOString()};};
   try { P.db = JSON.parse(localStorage.getItem(P.key)) || P.defaults(); if(!P.db || !Array.isArray(P.db.clients)||!Array.isArray(P.db.services)) throw Error('Formato inválido'); }
   catch(e){P.db=P.defaults();}
-  P.save = function () { try {localStorage.setItem(P.key,JSON.stringify(P.db));return true;}catch(e){P.toast('Limite do armazenamento do navegador. Reduza as fotos ou faça um backup.','error');return false;} };
+  P.save = function () { try {localStorage.setItem(P.key,JSON.stringify(P.db));return true;}catch(e){if(typeof P.toast==='function')P.toast('Limite do armazenamento do navegador. Reduza as fotos ou faça um backup.','error');return false;} };
   P.publicInboxKey='perola-leite-studio-public-registrations-v1';
   P.importPublicRegistrations=function(){
     var pending;
@@ -81,6 +81,33 @@
     }
     try{localStorage.setItem(P.publicInboxKey,'[]');}catch(e){}
     return accepted;
+  };
+  P.removeClient=function(id){
+    var client=P.find('clients',id);
+    if(!client)return {ok:false,reason:'not-found'};
+    var appointments=P.db.appointments.filter(function(a){return a.clientId===id;}).length;
+    if(appointments){
+      var oldActive=client.active,oldArchive=client.archivedAt;
+      client.active=false;client.archivedAt=new Date().toISOString();
+      if(!P.save()){client.active=oldActive;client.archivedAt=oldArchive;return {ok:false,reason:'storage'};}
+      P.auditFinance('cliente','arquivada',id,{active:true},{active:false},'Preservar '+appointments+' atendimentos');
+      P.save();
+      return {ok:true,kind:'archived',appointments:appointments};
+    }
+    var previous=P.db.clients;
+    P.db.clients=previous.filter(function(c){return c.id!==id;});
+    if(!P.save()){P.db.clients=previous;return {ok:false,reason:'storage'};}
+    return {ok:true,kind:'deleted',appointments:0};
+  };
+  P.restoreClient=function(id){
+    var client=P.find('clients',id);
+    if(!client)return false;
+    var active=client.active,archive=client.archivedAt;
+    client.active=true;client.archivedAt=null;
+    if(!P.save()){client.active=active;client.archivedAt=archive;return false;}
+    P.auditFinance('cliente','restaurada',id,{active:false},{active:true},'Restaurada no painel');
+    P.save();
+    return true;
   };
   P.find = function (type,id) {return (P.db[type]||[]).find(function(x){return x.id===id;});};
   P.active = function (type) {return (P.db[type]||[]).filter(function(x){return x.active!==false;});};
