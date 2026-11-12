@@ -327,3 +327,24 @@ body.modal-open{overflow:hidden!important;overscroll-behavior:none}
 .client-actions{display:flex;align-items:center;justify-content:flex-start;gap:7px;flex-wrap:wrap;min-width:228px}
 .client-actions .btn{min-height:34px;white-space:nowrap}
 @media(max-width:820px){.client-actions{min-width:200px;gap:5px}.client-actions .btn{font-size:11px;padding:8px 10px}}
+
+
+/* Link de cadastro: área fácil de copiar e compartilhar, inclusive no PWA */
+.signup-share-panel{margin-bottom:20px;border:1px solid #e7d7c7;background:linear-gradient(135deg,#fffdfa 0%,#faf1ea 100%)}
+.signup-share-panel .section-head{margin-bottom:16px}
+.signup-share-panel .section-title{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(20px,2.6vw,27px)}
+.signup-share-input-row{display:flex;align-items:center;gap:10px}
+.signup-share-url{flex:1 1 auto;min-width:0;min-height:45px;padding:12px 14px;border:1px solid #e7d5c5;border-radius:11px;color:#735c50;background:#fff;font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.signup-share-input-row .btn{flex:0 0 auto}
+.signup-share-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.signup-share-actions .btn{text-decoration:none}
+.signup-share-warning{font-size:11px;line-height:1.65;color:#90786b;border-top:1px solid #e8dace;padding-top:14px;margin:15px 0 0}
+.signup-share-warning strong{color:#8b653e}
+@media(max-width:820px){
+ .signup-share-panel{margin-bottom:14px}
+ .signup-share-input-row{flex-wrap:wrap}
+ .signup-share-url{width:100%;flex-basis:100%;font-size:16px}
+ .signup-share-input-row .btn{width:100%;justify-content:center}
+ .signup-share-actions{display:grid;grid-template-columns:1fr;gap:8px}
+ .signup-share-actions .btn{width:100%;justify-content:center;text-align:center}
+}
