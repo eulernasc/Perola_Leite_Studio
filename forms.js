@@ -187,8 +187,23 @@
   function reportRows(month){var s=P.summaryFor(month);return s.payments.slice().sort(function(a,b){return a.date.localeCompare(b.date)||a.createdAt.localeCompare(b.createdAt);});}
   function reportCSV(){var rows=[['Tipo','Data recebimento','Data atendimento','Cliente','CPF','Endereço','Serviços e complementos','Forma de pagamento','Valor (R$)']];reportRows(P.reportMonth).forEach(function(p){rows.push(['Receita',P.date(p.date),P.date(p.snapshot.serviceDate),p.snapshot.clientName,P.cpfFormat(p.snapshot.cpf),p.snapshot.address,p.snapshot.serviceText,p.method,Number(p.amount).toFixed(2).replace('.',',')]);});P.summaryFor(P.reportMonth).expenses.forEach(function(x){rows.push(['Despesa',P.date(x.date),'','','','',x.title,x.method,(-Number(x.amount)).toFixed(2).replace('.',',')]);});P.csv(rows,'perola-leite-relatorio-'+P.reportMonth+'.csv');}
 
+  function copySignupLink(){
+    var url=P.publicRegistrationLink;
+    function fallback(){
+      var input=document.querySelector('.signup-share-url');
+      if(!input){P.toast('Link indisponível nesta tela.','error');return;}
+      input.focus();input.select();
+      var copied=false;
+      try{copied=document.execCommand('copy');}catch(err){}
+      P.toast(copied?'Link de cadastro copiado.':'Selecione e copie o link exibido no campo.',copied?'success':'error');
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(function(){P.toast('Link de cadastro copiado.');}).catch(fallback);
+    }else fallback();
+  }
   function action(el,ev){var type=el.dataset.action,id=el.dataset.id;switch(type){
     case 'page':P.page=el.dataset.page;P.render();window.scrollTo(0,0);break;
+    case 'copy-signup-link':copySignupLink();break;
     case 'new-client':returnToAppointment=modalState.type==='appointment';P.openModal('client');break;
     case 'history-client':P.openModal('history',id);break;
     case 'edit-client':P.openModal('client',id);break;
