@@ -192,28 +192,15 @@
     case 'edit-client':P.openModal('client',id);break;
     case 'delete-client':P.openModal('delete-client',id);break;
     case 'confirm-delete-client':
-      var selected=P.find('clients',id);
-      if(!selected)break;
-      var historyCount=P.db.appointments.filter(function(a){return a.clientId===id;}).length;
-      if(historyCount){
-        selected.active=false;
-        selected.archivedAt=new Date().toISOString();
-        P.auditFinance('cliente','arquivada',id,{active:true},{active:false},'Preservar '+historyCount+' atendimentos');
-        notifySaved('Cliente arquivada. O histórico continua preservado.');
-      }else{
-        var originalClients=P.db.clients;
-        P.db.clients=originalClients.filter(function(x){return x.id!==id;});
-        if(!P.save()){P.db.clients=originalClients;break;}
-        P.closeModal();P.render();P.toast('Cliente excluída definitivamente.');
-      }
+      var removal=P.removeClient(id);
+      if(removal.ok){
+        P.closeModal();P.render();
+        P.toast(removal.kind==='archived'?'Cliente arquivada. O histórico continua preservado.':'Cliente excluída definitivamente.');
+      }else P.toast('Não foi possível excluir esta cliente.','error');
       break;
     case 'restore-client':
-      var restored=P.find('clients',id);
-      if(restored){
-        restored.active=true;restored.archivedAt=null;
-        P.auditFinance('cliente','restaurada',id,{active:false},{active:true},'Restaurada no painel');
-        if(P.save()){P.render();P.toast('Cliente restaurada para novos agendamentos.');}
-      }
+      if(P.restoreClient(id)){P.render();P.toast('Cliente restaurada para novos agendamentos.');}
+      else P.toast('Não foi possível restaurar esta cliente.','error');
       break;
     case 'new-item':P.openModal('item');break;case 'edit-item':P.openModal('item',id);break;
     case 'new-appt':P.openModal('appointment');break;case 'edit-appt':P.openModal('appointment',id);break;case 'show-appt':P.openModal('view-appt',id);break;
