@@ -46,7 +46,7 @@
       '<div class="field full">'+field('complement','Complemento (opcional)',c.complement,'text','maxlength="120" placeholder="Apartamento, casa, bloco, referência..."')+'</div></div>'+
       (legacy?'<div class="notice" style="margin-top:15px"><strong>Cadastro anterior preservado</strong>Endereço antigo: '+E(c.address)+'. Você pode completar os novos campos ou manter o registro anterior sem perder dados.</div>':'')+
       '<p class="hint" style="margin-top:14px">Os dados ficarão vinculados aos lançamentos e relatórios. Nesta versão de testes, use apenas informações fictícias.</p>';
-    frame(id?'Editar cliente':'Nova cliente','client',body,formButtons('Salvar cliente'));
+    frame(id?'Editar cliente':'Nova cliente','client',body,formButtons('Salvar cliente',id?'<button type="button" class="btn danger" data-action="delete-client" data-id="'+E(id)+'">'+I('trash')+'Excluir cliente</button>':''));
   }
   function clientDeleteModal(id){
     var client=P.find('clients',id);if(!client)return;
