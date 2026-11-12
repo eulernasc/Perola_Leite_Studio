@@ -93,6 +93,16 @@ assert.match(publicCSS,/font-size:16px/,'inputs sem zoom no iPhone');
 assert.match(publicCSS,/\.form-grid\[hidden\]/,'conclusão esconde os campos');
 assert.match(publicJS,/PLSRegistration\.register\(item\)/,'cadastro público usa salvamento local');
 assert.match(P.clientsPage(),/href="\.\/cadastro\.html"/,'link de acesso ao cadastro público no painel de clientes');
+vm.runInContext(fs.readFileSync(path.join(project,'cadastro-storage.js'),'utf8'),ctx,{filename:'cadastro-storage.js'});
+const publicRegistration=ctx.window.PLSRegistration;
+const reg=publicRegistration.register({name:'Cadastro Fictício Público',cpf:'11144477735',street:'Rua Teste',number:'45',neighborhood:'Centro',city:'Cidade Exemplo',state:'MG'});
+assert.equal(reg.ok,true,'cadastro público válido salvo na fila');
+assert.equal(P.importPublicRegistrations(),1,'cadastro importado pela administração');
+assert.ok(P.clientsPage().includes('Cadastro Fictício Público'),'cliente pública aparece na administração');
+assert.equal(P.importPublicRegistrations(),0,'cadastro não pode ser importado duas vezes');
+assert.equal(P.removeClient(reg.id).kind,'deleted','exclusão definitiva sem histórico');
+assert.ok(!P.clientsPage().includes('Cadastro Fictício Público'),'cliente excluída deixa a listagem');
+
 const sw=fs.readFileSync(path.join(project,'sw.js'),'utf8');
 assert.match(sw,/url\.pathname\.endsWith\('\/cadastro\.html'\)/,'PWA não retorna administração no lugar do cadastro público');
 assert.match(fs.readFileSync(path.join(project,'styles.css'),'utf8'),/font-size:16px!important/,'campos administrativos sem zoom no iPhone');
