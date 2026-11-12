@@ -86,6 +86,7 @@ assert.match(publicHTML,/Bem-vinda ao Pérola Leite Studio/,'título profissiona
 assert.match(publicHTML,/<meta property="og:title" content="Cadastro de cliente \| Pérola Leite Studio">/,'título para compartilhamento');
 assert.match(publicHTML,/<meta property="og:image" content="https:\/\/eulernasc\.github\.io\/Perola_Leite_Studio\/assets\/social-preview\.png">/,'imagem publicada no preview do cadastro');
 assert.match(publicHTML,/<meta property="og:image:secure_url"/,'URL de imagem HTTPS');
+assert.match(publicHTML,/property="og:url" content="https:\/\/eulernasc\.github\.io\/Perola_Leite_Studio\/cadastro\.html\?convite=1"/,'URL Open Graph corresponde ao link compartilhado');
 assert.match(publicHTML,/<meta property="og:image:width" content="1200">/,'imagem no formato 1200px');
 assert.match(publicHTML,/<meta property="og:image:height" content="630">/,'imagem no formato 630px');
 assert.match(publicHTML,/<meta name="twitter:card" content="summary_large_image">/,'prévia para redes sociais');
