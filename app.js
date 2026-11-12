@@ -102,6 +102,19 @@
     var stickyDays=showWeek?'<div class="mobile-week-sticky" id="mobile-week-sticky" aria-label="Dias fixos da semana"><div class="mobile-week-time-title">HORÁRIO</div><div class="mobile-week-days-viewport" id="week-sticky-scroll"><div class="agenda-days">'+headings+'</div></div></div>':'';
     return top+nav+legend+stickyDays+'<div class="agenda-card card">'+content+'</div>';
   };
+  P.publicRegistrationLink='https://eulernasc.github.io/Perola_Leite_Studio/cadastro.html';
+  P.registrationSharePanel=function(){
+    var url=P.publicRegistrationLink;
+    var message='Olá! Segue o link para conhecer o formulário de cadastro do Pérola Leite Studio (versão de testes): '+url;
+    return '<section class="card card-pad signup-share-panel" aria-labelledby="share-register-title">'+
+      '<div class="section-head"><div><div class="eyebrow">CADASTRO DAS CLIENTES</div><h2 class="section-title" id="share-register-title">Link para enviar às clientes</h2><p class="subtitle">Copie ou compartilhe o endereço exclusivo do formulário, sem menus administrativos.</p></div></div>'+
+      '<div class="signup-share-input-row"><input class="signup-share-url" type="text" readonly aria-label="Link de cadastro das clientes" value="'+P.esc(url)+'">'+
+      P.button('Copiar link','copy-signup-link','file','primary')+'</div>'+
+      '<div class="signup-share-actions"><a class="btn soft" href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener noreferrer">'+P.icon('arrow')+'Enviar pelo WhatsApp</a>'+
+      '<a class="btn soft" href="./cadastro.html" target="_blank" rel="noopener noreferrer">'+P.icon('users')+'Visualizar formulário</a></div>'+
+      '<p class="signup-share-warning"><strong>Aviso de testes:</strong> cadastros feitos em outro celular ainda não aparecem neste ADM sem Firebase. A integração local funciona apenas entre páginas do mesmo navegador/perfil. Não utilize dados reais nesta etapa.</p>'+
+      '</section>';
+  };
   P.clientsPage=function(){
     var active=P.db.clients.filter(function(c){return c.active!==false;}).sort(function(a,b){return a.name.localeCompare(b.name,'pt-BR');});
     var inactive=P.db.clients.filter(function(c){return c.active===false;}).sort(function(a,b){return a.name.localeCompare(b.name,'pt-BR');});
@@ -113,7 +126,7 @@
       return '<div class="mini-item"><span class="grow"><strong>'+P.esc(c.name)+'</strong><small>'+P.esc(P.cpfFormat(c.cpf))+' · Cadastro desativado · não aparece nos novos agendamentos</small></span>'+P.button('Ativar','restore-client','check','soft sm','data-id="'+c.id+'"')+P.button('Excluir definitivamente','delete-client','trash','sm danger','data-id="'+c.id+'"')+'</div>';
     }).join('');
     return P.head('CADASTRO','Minhas clientes','Desative para impedir novos agendamentos; exclua definitivamente para remover o cadastro e seus dados pessoais.',P.button('Cadastrar cliente','new-client','plus','primary')+'<a class="btn soft" href="./cadastro.html" target="_blank" rel="noopener noreferrer">'+P.icon('users')+'Página de cadastro (teste)</a>')+
-    '<div class="card card-pad"><div class="toolbar"><div class="toolbar-left"><div class="search">'+P.icon('search')+'<input type="search" data-filter="clients" placeholder="Buscar por nome ou CPF..." autocomplete="off" aria-label="Buscar clientes"></div></div><div class="toolbar-right"><span class="pill">'+active.length+' ativas</span>'+P.button('Nova cliente','new-client','plus','soft sm')+'</div></div>'+
+    P.registrationSharePanel()+'<div class="card card-pad"><div class="toolbar"><div class="toolbar-left"><div class="search">'+P.icon('search')+'<input type="search" data-filter="clients" placeholder="Buscar por nome ou CPF..." autocomplete="off" aria-label="Buscar clientes"></div></div><div class="toolbar-right"><span class="pill">'+active.length+' ativas</span>'+P.button('Nova cliente','new-client','plus','soft sm')+'</div></div>'+
     (active.length?'<div class="table-scroller"><table class="list-table"><thead><tr><th>Cliente</th><th>CPF</th><th>Telefone</th><th>Endereço</th><th>Agendamentos</th><th>Ações</th></tr></thead><tbody>'+rows+'</tbody></table></div>':P.empty('users','Nenhuma cliente ativa','Cadastre uma cliente ou ative uma das desativadas.',P.button('Cadastrar cliente','new-client','plus','primary')))+
     '</div>'+
     (inactive.length?'<section class="card card-pad" style="margin-top:17px"><div class="section-head"><div><h2 class="section-title">Clientes desativadas ('+inactive.length+')</h2><p class="section-sub">Cadastros preservados e reversíveis. Use Ativar ou Excluir definitivamente.</p></div></div><div class="mini-list">'+inactiveRows+'</div></section>':'');
