@@ -322,3 +322,8 @@ body.modal-open{overflow:hidden!important;overscroll-behavior:none}
   .page-heading .actions .btn[href="./cadastro.html"]{white-space:normal;text-align:center}
   .notice a{color:var(--gold2);font-weight:800;text-underline-offset:3px}
 }
+
+/* Cadastro: ações claras de editar, excluir e recuperar clientes. */
+.client-actions{display:flex;align-items:center;justify-content:flex-start;gap:7px;flex-wrap:wrap;min-width:228px}
+.client-actions .btn{min-height:34px;white-space:nowrap}
+@media(max-width:820px){.client-actions{min-width:200px;gap:5px}.client-actions .btn{font-size:11px;padding:8px 10px}}
