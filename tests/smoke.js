@@ -185,13 +185,15 @@ const a={
   date:P.today(),time:'10:00',status:'confirmado'
 };
 P.db.appointments.push(a);
-assert.ok(P.clientsPage().includes('data-action="delete-client"'),'exclusão disponível ao lado de editar');
-assert.equal(P.removeClient(c.id).kind,'archived','cliente com histórico não deve ser apagada');
-assert.equal(c.active,false,'cliente arquivada sai dos cadastros ativos');
-assert.ok(P.clientsPage().includes('data-action="restore-client"'),'cliente arquivada possui restauração');
-assert.ok(!P.active('clients').some(function(x){return x.id===c.id;}),'cadastro arquivado sai das opções de novos agendamentos');
-assert.equal(P.restoreClient(c.id),true,'restaurar cliente arquivada');
-assert.equal(c.active,true,'cliente restaurada volta aos cadastros ativos');
+assert.ok(P.clientsPage().includes('data-action="delete-client"'),'excluir definitivamente está ao lado de editar');
+assert.ok(P.clientsPage().includes('data-action="deactivate-client"'),'desativar é uma ação diferente');
+assert.equal(P.setClientActive(c.id,false),true,'desativar cliente com histórico');
+assert.equal(c.active,false,'desativar preserva o cadastro');
+assert.ok(P.clientsPage().includes('data-action="restore-client"'),'cliente desativada pode ser ativada');
+assert.ok(P.clientsPage().includes('data-action="delete-client"'),'cliente desativada também pode ser excluída');
+assert.ok(!P.active('clients').some(function(x){return x.id===c.id;}),'desativação retira cliente de novos agendamentos');
+assert.equal(P.restoreClient(c.id),true,'ativar cliente desativada');
+assert.equal(c.active,true,'cadastro reativado continua íntegro');
 
 assert.equal(P.total(a),215);
 assert.equal(P.duration(a),105);
@@ -228,6 +230,30 @@ P.db.expenses[0].voided=true;
 assert.equal(P.summaryFor(P.monthKey(a.date)).spent,0,'despesa excluída sai do saldo');
 
 P.save();
-assert.ok(storage.get(P.key).includes('cliente-ficticia'),'persistência local');
+assert.ok(storage.get(P.key).includes('cliente-ficticia'),'persistência local antes da exclusão');
 
-console.log('PASSOU: agenda, horário, modal, financeiro com auditoria, exclusões, PDF direto, PWA e persistência.');
+const paidBeforeDeletion=P.summaryFor(P.monthKey(a.date)).received;
+const numberOfAppointments=P.db.appointments.length;
+const numberOfPayments=P.db.payments.length;
+const deleted=P.deleteClientPermanently(c.id);
+assert.equal(deleted.ok,true,'exclusão definitiva permitida com histórico');
+assert.equal(deleted.kind,'deleted','excluir não deve apenas arquivar');
+assert.equal(deleted.appointments,1,'atendimento vinculado desidentificado');
+assert.equal(deleted.payments,2,'pagamentos vinculados desidentificados');
+assert.equal(P.find('clients',c.id),undefined,'cadastro removido de verdade');
+assert.equal(P.db.appointments.length,numberOfAppointments,'atendimentos preservados');
+assert.equal(P.db.payments.length,numberOfPayments,'pagamentos preservados');
+assert.equal(P.summaryFor(P.monthKey(a.date)).received,paidBeforeDeletion,'total recebido não muda ao excluir cliente');
+assert.equal(P.find('appointments',a.id).clientId,null,'agendamento não referencia cliente removida');
+assert.equal(P.db.payments[0].snapshot.clientName,'Cliente excluída','nome removido dos históricos financeiros');
+assert.equal(P.db.payments[0].snapshot.cpf,'','CPF removido dos históricos');
+assert.equal(P.db.payments[0].snapshot.address,'','endereço removido dos históricos');
+assert.equal(P.db.appointments.find(function(item){return item.id===a.id;}).snapshot.cpf,'','CPF removido do snapshot do agendamento');
+assert.ok(!storage.get(P.key).includes('52998224725'),'CPF apagado do armazenamento principal');
+assert.ok(!storage.get(P.key).includes('Cliente Fictícia'),'nome apagado do armazenamento principal');
+assert.ok(!storage.get(P.key).includes('Rua Exemplo'),'endereço apagado do armazenamento principal');
+assert.ok(!storage.get(P.key).includes(c.id),'identificador pessoal não permanece ligado ao cadastro');
+assert.equal(P.importPublicRegistrations(),0,'cadastro excluído não é importado novamente');
+assert.equal(P.deleteClientPermanently(c.id).ok,false,'exclusão repetida não recria registros');
+
+console.log('PASSOU: desativação separada de exclusão definitiva, histórico anonimizado, saldo preservado, PDF, agenda e PWA.');
