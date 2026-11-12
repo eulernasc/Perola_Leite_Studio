@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  // Esta página é deliberadamente independente do painel administrativo.
-  // Enquanto não houver backend autenticado, o formulário NUNCA transmite nem persiste dados.
+  // Esta página não carrega scripts nem rotas administrativas.
+  // Em testes, grava somente uma fila de cadastros no armazenamento local da mesma origem.
   var form=document.getElementById('publicRegistration');
   var feedback=document.getElementById('formFeedback');
   var success=document.getElementById('successPanel');
@@ -57,7 +57,17 @@
       feedback.scrollIntoView({block:'nearest',behavior:'smooth'});
       return;
     }
-    // Não armazenar CPF/endereço de clientes reais até que haja backend seguro.
+    var item={};
+    ['name','cpf','phone','street','number','neighborhood','city','state','complement'].forEach(function(key){
+      item[key]=String(values.get(key)||'').trim();
+    });
+    var result=window.PLSRegistration&&window.PLSRegistration.register(item);
+    if(!result||!result.ok){
+      feedback.textContent=result&&result.error||'Não foi possível salvar o cadastro de teste neste navegador.';
+      feedback.hidden=false;
+      feedback.scrollIntoView({block:'nearest',behavior:'smooth'});
+      return;
+    }
     form.reset();
     form.hidden=true;
     success.hidden=false;
