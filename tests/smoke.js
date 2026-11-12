@@ -185,6 +185,14 @@ const a={
   date:P.today(),time:'10:00',status:'confirmado'
 };
 P.db.appointments.push(a);
+assert.ok(P.clientsPage().includes('data-action="delete-client"'),'exclusão disponível ao lado de editar');
+assert.equal(P.removeClient(c.id).kind,'archived','cliente com histórico não deve ser apagada');
+assert.equal(c.active,false,'cliente arquivada sai dos cadastros ativos');
+assert.ok(P.clientsPage().includes('data-action="restore-client"'),'cliente arquivada possui restauração');
+assert.ok(!P.active('clients').some(function(x){return x.id===c.id;}),'cadastro arquivado sai das opções de novos agendamentos');
+assert.equal(P.restoreClient(c.id),true,'restaurar cliente arquivada');
+assert.equal(c.active,true,'cliente restaurada volta aos cadastros ativos');
+
 assert.equal(P.total(a),215);
 assert.equal(P.duration(a),105);
 assert.equal(P.overlap(a.date,'10:30',30),true,'conflito');
