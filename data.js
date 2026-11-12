@@ -56,6 +56,32 @@
   try { P.db = JSON.parse(localStorage.getItem(P.key)) || P.defaults(); if(!P.db || !Array.isArray(P.db.clients)||!Array.isArray(P.db.services)) throw Error('Formato inválido'); }
   catch(e){P.db=P.defaults();}
   P.save = function () { try {localStorage.setItem(P.key,JSON.stringify(P.db));return true;}catch(e){P.toast('Limite do armazenamento do navegador. Reduza as fotos ou faça um backup.','error');return false;} };
+  P.publicInboxKey='perola-leite-studio-public-registrations-v1';
+  P.importPublicRegistrations=function(){
+    var pending;
+    try{pending=JSON.parse(localStorage.getItem(P.publicInboxKey)||'[]');}catch(e){return 0;}
+    if(!Array.isArray(pending)||!pending.length)return 0;
+    var before=P.db.clients.length,accepted=0;
+    pending.forEach(function(row){
+      if(!row||typeof row!=='object')return;
+      var cpf=P.digits(row.cpf);
+      if(!P.cpfValid(cpf)||!String(row.name||'').trim())return;
+      if(P.db.clients.some(function(c){return P.digits(c.cpf)===cpf;}))return;
+      var item={id:String(row.id||P.uid()),name:String(row.name).trim(),cpf:cpf,
+        phone:P.digits(row.phone),street:String(row.street||'').trim(),
+        number:String(row.number||'').trim(),neighborhood:String(row.neighborhood||'').trim(),
+        city:String(row.city||'').trim(),state:String(row.state||'').trim().toUpperCase(),
+        complement:String(row.complement||'').trim(),address:String(row.address||'').trim(),
+        createdAt:row.createdAt||new Date().toISOString(),origin:'cadastro-publico-local'};
+      P.db.clients.push(item);accepted++;
+    });
+    if(accepted&&!P.save()){
+      P.db.clients.splice(before,accepted);
+      return 0;
+    }
+    try{localStorage.setItem(P.publicInboxKey,'[]');}catch(e){}
+    return accepted;
+  };
   P.find = function (type,id) {return (P.db[type]||[]).find(function(x){return x.id===id;});};
   P.active = function (type) {return (P.db[type]||[]).filter(function(x){return x.active!==false;});};
   P.items = function (a) {var serv=P.find('services',a.serviceId);var price=Number(a.priceOverride!=null?a.priceOverride:(a.basePrice!=null?a.basePrice:(serv?serv.price:0)));var rows=[{name:a.serviceName||(serv?serv.name:'Serviço removido'),price:price,qty:1,minutes:serv?Number(serv.minutes):90}];(a.addons||[]).forEach(function(x){var def=P.find('addons',x.id)||{};rows.push({name:x.name||def.name||'Complemento',price:x.specialTotal!=null?Number(x.specialTotal):Number(x.price),qty:x.specialTotal!=null?1:Number(x.qty)||1,displayQty:Number(x.qty)||1,minutes:Number(x.minutes)||0});});return rows;};
@@ -86,4 +112,5 @@
   P.badge = function(status){var names={agendado:'Agendado',confirmado:'Confirmado',concluido:'Concluído',cancelado:'Cancelado',bloqueado:'Bloqueado'};return '<span class="status '+P.esc(status)+'">'+(names[status]||P.esc(status))+'</span>';};
   P.csv = function(rows,filename){var content='\ufeff'+rows.map(function(row){return row.map(function(cell){return '"'+String(cell==null?'':cell).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');var link=document.createElement('a');link.href=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));link.download=filename;link.click();setTimeout(function(){URL.revokeObjectURL(link.href);},2000);};
   P.exportJSON = function(){var link=document.createElement('a');link.href=URL.createObjectURL(new Blob([JSON.stringify(P.db,null,2)],{type:'application/json'}));link.download='perola-leite-backup-'+P.today()+'.json';link.click();setTimeout(function(){URL.revokeObjectURL(link.href);},2000);};
+  P.importPublicRegistrations();
 })();
