@@ -1,9 +1,9 @@
 /* Pérola Leite Studio — cache apenas de recursos públicos, nunca dados das clientes. */
-const CACHE_NAME = 'perola-leite-ui-v7';
+const CACHE_NAME = 'perola-leite-ui-v8';
 const OFFLINE_ASSETS = [
   './', './index.html', './styles.css', './data.js', './calendar-ui.js',
   './time-ui.js', './app.js', './forms.js', './pdf.js', './pwa.js', './site.webmanifest',
-  './cadastro.html', './cadastro.css', './cadastro.js',
+  './cadastro.html', './cadastro.css', './cadastro-storage.js', './cadastro.js',
   './assets/brand-icon.svg'
 ];
 self.addEventListener('install', event => {
