@@ -95,7 +95,7 @@ assert.doesNotMatch(publicJS,/localStorage|sessionStorage|fetch\(/,'o cadastro p
 assert.match(P.clientsPage(),/href="\.\/cadastro\.html"/,'link de acesso ao cadastro público no painel de clientes');
 const sw=fs.readFileSync(path.join(project,'sw.js'),'utf8');
 assert.match(sw,/url\.pathname\.endsWith\('\/cadastro\.html'\)/,'PWA não retorna administração no lugar do cadastro público');
-assert.match(css,/font-size:16px!important/,'campos administrativos sem zoom no iPhone');
+assert.match(fs.readFileSync(path.join(project,'styles.css'),'utf8'),/font-size:16px!important/,'campos administrativos sem zoom no iPhone');
 assert.equal((indexHTML.match(/src="\.\/pdf\.js"/g)||[]).length,1,'PDF carregado apenas uma vez');
 assert.equal((indexHTML.match(/src="\.\/time-ui\.js"/g)||[]).length,1,'horário carregado apenas uma vez');
 const manifest=JSON.parse(fs.readFileSync(path.join(project,'site.webmanifest'),'utf8'));
