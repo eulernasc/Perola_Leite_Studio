@@ -33,6 +33,18 @@ Acesse o site em HTTPS e use **Instalar aplicativo** na Visão geral ou em Confi
 
 Os seletores de mês e dia usam o calendário personalizado do estúdio; seleção de foto e checkboxes também têm aparência própria.
 
+## Cadastro para clientes — página separada em demonstração
+
+- **URL pública:** `https://eulernasc.github.io/Perola_Leite_Studio/cadastro.html`
+- Página independente, sem menu administrativo, sem agendamentos, sem links para o painel, com campos de nome, CPF, telefone, rua, número, bairro, cidade, UF e complemento.
+- A interface valida CPF e telefone e permite testar o preenchimento com dados fictícios.
+- **Ainda não transmite nem armazena os dados preenchidos.** A tela informa isso claramente antes e depois do teste, para não simular um envio real.
+- O site administrativo continua **público e sem login** nesta versão. A ausência de links administrativos na página pública não impede que alguém conhecendo o endereço abra o painel; o acesso administrativo só será protegido com autenticação e regras de backend.
+- Para permitir que clientes façam cadastros em aparelhos diferentes e os dados apareçam no painel da dona, será indispensável conectar um banco de dados com controles de acesso (etapa Firebase, ainda não implementada).
+- O cadastro aparece em **Clientes > Página de cadastro (teste)** e também em **Configurações**.
+- Os campos dos formulários foram ampliados no iPhone para evitar zoom automático do Safari (sem bloquear zoom manual).
+- A rolagem horizontal da agenda no celular recebeu um ganho moderado de 22% para deixar a navegação mais ágil, sem interferir nos gestos verticais.
+
 ## Como testar
 
 Com o repositório aberto na branch `desenvolvimento`, rode um servidor HTTP local para evitar restrições do navegador ao abrir arquivos diretamente:
