@@ -102,7 +102,7 @@
     var stickyDays=showWeek?'<div class="mobile-week-sticky" id="mobile-week-sticky" aria-label="Dias fixos da semana"><div class="mobile-week-time-title">HORÁRIO</div><div class="mobile-week-days-viewport" id="week-sticky-scroll"><div class="agenda-days">'+headings+'</div></div></div>':'';
     return top+nav+legend+stickyDays+'<div class="agenda-card card">'+content+'</div>';
   };
-  P.publicRegistrationLink='https://eulernasc.github.io/Perola_Leite_Studio/cadastro.html';
+  P.publicRegistrationLink='https://eulernasc.github.io/Perola_Leite_Studio/cadastro.html?convite=1';
   P.registrationSharePanel=function(){
     var url=P.publicRegistrationLink;
     var message='Olá! Segue o link para conhecer o formulário de cadastro do Pérola Leite Studio (versão de testes): '+url;
