@@ -48,15 +48,25 @@
       '<p class="hint" style="margin-top:14px">Os dados ficarão vinculados aos lançamentos e relatórios. Nesta versão de testes, use apenas informações fictícias.</p>';
     frame(id?'Editar cliente':'Nova cliente','client',body,formButtons('Salvar cliente'));
   }
+  function clientDeleteModal(id){
+    var client=P.find('clients',id);if(!client)return;
+    var count=P.db.appointments.filter(function(a){return a.clientId===id;}).length;
+    var linked=count>0;
+    var body='<div class="notice"><strong>'+(linked?'Esta cliente possui histórico':'Cadastro sem histórico')+'</strong>'+
+      (linked?'Existem '+count+' agendamento(s) vinculados a este cadastro. Para não perder informações de atendimentos, a cliente será arquivada e removida da lista ativa. Você poderá restaurá-la depois.':'Este cadastro não possui agendamentos. Ao confirmar, ele será apagado dos dados locais deste navegador. Esta ação não poderá ser desfeita.')+'</div>'+
+      '<div class="mini-item" style="margin-top:16px"><span class="grow"><strong>'+E(client.name)+'</strong><small>CPF: '+E(P.cpfFormat(client.cpf))+'</small></span></div>';
+    var label=linked?'Arquivar cliente':'Excluir definitivamente';
+    frame('Excluir cliente',null,body,'<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn danger" data-action="confirm-delete-client" data-id="'+E(id)+'">'+I('trash')+label+'</button>');
+  }
   function itemModal(id){var type=P.catalogType;var item=P.find(type,id)||{};modalState.image=item.image||'';var isService=type==='services';var body='<div class="field-grid">'+field('name','Nome '+(isService?'do serviço':'do complemento')+' *',item.name,'text','required maxlength="110"')+field('price','Valor em R$ *',item.price===undefined?'':item.price,'number','required min="0" step="0.01"')+field('minutes','Duração '+(isService?'em minutos *':'adicional em minutos'),item.minutes===undefined?'':item.minutes,'number',isService?'required min="1"':'min="0"')+(isService?field('category','Categoria',item.category||'Unhas','text','maxlength="70"'):'<div class="field"><label>Tipo de cobrança</label><label class="toggle"><input type="checkbox" name="perUnit" '+(item.perUnit?'checked':'')+'> Por unidade (ex.: unha quebrada)</label></div>')+'<div class="field full">'+textarea('description','Descrição / observações',item.description)+'</div><div class="field full"><label class="toggle"><input type="checkbox" name="startingAt" '+(item.startingAt?'checked':'')+'><span class="toggle-copy"><strong>Preço variável</strong><small>Marque se o valor puder mudar. O catálogo mostrará "A partir de R$ ...".</small></span></label></div>'+(isService?'':'<div class="field full">'+field('thresholdQty','A partir de quantas unidades aplicar preço especial?',item.thresholdQty||0,'number','min="0" step="1"')+'</div><div class="field full">'+field('thresholdPrice','Valor especial total (R$)',item.thresholdPrice==null?'':item.thresholdPrice,'number','min="0" step="0.01" placeholder="Definir antes de usar"')+'</div>')+imgPanel()+'</div>';
     if(!isService){body+='<hr class="form-divider"><h3>Disponibilidade do complemento</h3><p class="hint">Sem seleção, ficará disponível para todos os serviços.</p><div class="addons-picker">'+P.db.services.map(function(s){return '<label class="addon-row"><input type="checkbox" name="serviceIds" value="'+s.id+'" '+((item.serviceIds||[]).includes(s.id)?'checked':'')+'><span>'+E(s.name)+'</span></label>';}).join('')+'</div>';}
     var extra=id?'<button type="button" class="btn soft" data-action="toggle-item" data-id="'+id+'">'+(item.active===false?'Ativar':'Desativar')+'</button><button type="button" class="btn danger" data-action="delete-item" data-id="'+id+'">'+I('trash')+'Excluir</button>':'';
     frame(id?'Editar '+(isService?'serviço':'complemento'):'Novo '+(isService?'serviço':'complemento'),'item',body,formButtons('Salvar',extra));
   }
   function addonsPicker(chosen,serviceId){var current=chosen||[];var rows=P.active('addons').filter(function(a){return !(a.serviceIds||[]).length||!serviceId||(a.serviceIds||[]).includes(serviceId);});return rows.length?rows.map(function(a){var selected=current.find(function(x){return x.id===a.id;});return '<label class="addon-row" data-addon-row="'+a.id+'"><input type="checkbox" name="addonCheck" value="'+a.id+'" '+(selected?'checked':'')+'><span class="grow"><strong>'+E(a.name)+'</strong><small>'+P.money(a.price)+(a.perUnit?' por unidade':'')+(a.minutes?' · +'+a.minutes+'min':'')+'</small></span>'+(a.perUnit?'<input type="number" name="qty_'+a.id+'" value="'+(selected?selected.qty:1)+'" min="1" max="30" aria-label="Quantidade de '+E(a.name)+'">':'')+'</label>';}).join(''):P.empty('sparkle','Sem complementos','Cadastre complementos no catálogo.');}
-  function appointmentModal(id){var a=P.find('appointments',id)||{};if(!P.db.clients.length){frame('Antes de agendar',null,P.empty('users','Cadastre uma cliente primeiro','Você poderá encontrá-la pelo nome ou CPF no momento do agendamento.'),'<button class="btn primary" data-action="new-client">'+I('plus')+'Cadastrar cliente</button>');return;}
+  function appointmentModal(id){var a=P.find('appointments',id)||{};var availableClients=P.db.clients.filter(function(c){return c.active!==false||c.id===a.clientId;});if(!availableClients.length){frame('Antes de agendar',null,P.empty('users','Cadastre uma cliente primeiro','Você poderá encontrá-la pelo nome ou CPF no momento do agendamento.'),'<button class="btn primary" data-action="new-client">'+I('plus')+'Cadastrar cliente</button>');return;}
     var currentService=a.serviceId||(P.active('services')[0]||{}).id||'';var currentClient=P.find('clients',a.clientId);
-    var clientOpts=P.db.clients.slice().sort(function(x,y){return x.name.localeCompare(y.name);}).map(function(c){return '<option data-search="'+E(P.norm(c.name+' '+c.cpf))+'" value="'+c.id+'" '+(a.clientId===c.id?'selected':'')+'>'+E(c.name+' · '+P.cpfFormat(c.cpf))+'</option>';}).join('');
+    var clientOpts=availableClients.slice().sort(function(x,y){return x.name.localeCompare(y.name);}).map(function(c){return '<option data-search="'+E(P.norm(c.name+' '+c.cpf))+'" value="'+c.id+'" '+(a.clientId===c.id?'selected':'')+'>'+E(c.name+' · '+P.cpfFormat(c.cpf))+'</option>';}).join('');
     var body='<div class="form-stack"><div class="field"><label>Pesquisar cliente por nome ou CPF *</label><div class="search">'+I('search')+'<input type="search" id="clientSearch" placeholder="Digite o nome ou CPF..." value="'+E(currentClient?currentClient.name:'')+'"></div><select id="client-picker" name="clientId" required style="margin-top:8px"><option value="">Selecione uma cliente</option>'+clientOpts+'</select><small>Não encontrou? <button type="button" class="btn sm soft" data-action="new-client" style="margin-top:6px">Cadastrar nova cliente</button></small></div><div class="field"><label>Serviço principal *</label><select name="serviceId" required id="booking-service">'+options(P.active('services'),currentService,'Selecione um serviço')+'</select></div><div class="field"><label>Complementos (opcionais)</label><div class="addons-picker" id="booking-addons">'+addonsPicker(a.addons,currentService)+'</div></div><div class="field-grid">'+field('date','Data *',a.date||P.agendaDate,'date','required')+field('time','Horário *',a.time||'09:00','time','required')+field('priceOverride','Valor do serviço (R$)',a.priceOverride===undefined?'':a.priceOverride,'number','min="0" step="0.01" placeholder="Padrão do catálogo"')+'<div class="field"><label>Status</label><select name="status"><option value="agendado" '+(a.status!=='confirmado'?'selected':'')+'>Agendado</option><option value="confirmado" '+(a.status==='confirmado'?'selected':'')+'>Confirmado</option></select></div></div>'+textarea('notes','Observações',a.notes)+'<div class="cost-preview"><span>Valor previsto <small style="display:block">Inclui complementos</small></span><strong id="booking-total">'+P.money(P.total(a.serviceId?a:{serviceId:currentService,addons:[]}))+'</strong></div></div>';
     frame(id?'Editar agendamento':'Novo agendamento','appointment',body,formButtons('Salvar agendamento',id?'<button type="button" class="btn danger" data-action="delete-appt" data-id="'+id+'">'+I('trash')+'Excluir</button>':''));
     updateBookingPreview();
@@ -137,7 +147,7 @@
       '<h3>Histórico de atendimentos</h3><div class="mini-list">'+(cards||P.empty('calendar','Sem atendimentos','Esta cliente ainda não possui agendamentos.'))+'</div>';
     frame('Histórico da cliente',null,body,'<button type="button" class="btn soft" data-action="edit-client" data-id="'+id+'">'+I('edit')+'Editar cadastro</button><button type="button" class="btn" data-action="close-modal">Fechar</button>');
   }
-  P.openModal=function(type,id){if(P.closeCalendar)P.closeCalendar();if(P.closeTimePicker)P.closeTimePicker();modalState={type:type,id:id||null,image:'',payments:[]};if(type==='client')clientModal(id);if(type==='history')historyModal(id);if(type==='item')itemModal(id);if(type==='appointment')appointmentModal(id);if(type==='view-appt')appointmentInfo(id);if(type==='complete')completionModal(id);if(type==='receive')receiveModal(id);if(type==='expense')expenseModal(id);if(type==='edit-payment')paymentEditModal(id);if(type==='void-payment')financeVoidModal('payment',id);if(type==='void-expense')financeVoidModal('expense',id);if(type==='block')blockModal(id);};
+  P.openModal=function(type,id){if(P.closeCalendar)P.closeCalendar();if(P.closeTimePicker)P.closeTimePicker();modalState={type:type,id:id||null,image:'',payments:[]};if(type==='client')clientModal(id);if(type==='history')historyModal(id);if(type==='delete-client')clientDeleteModal(id);if(type==='item')itemModal(id);if(type==='appointment')appointmentModal(id);if(type==='view-appt')appointmentInfo(id);if(type==='complete')completionModal(id);if(type==='receive')receiveModal(id);if(type==='expense')expenseModal(id);if(type==='edit-payment')paymentEditModal(id);if(type==='void-payment')financeVoidModal('payment',id);if(type==='void-expense')financeVoidModal('expense',id);if(type==='block')blockModal(id);};
   P.closeModal=function(){if(P.closeCalendar)P.closeCalendar();if(P.closeTimePicker)P.closeTimePicker();root.innerHTML='';modalState={};unlockScroll();};
   function notifySaved(msg){if(!P.save())return;P.closeModal();P.render();P.toast(msg||'Salvo com sucesso.');}
   function updateBookingPreview(){var form=root.querySelector('[data-form="appointment"]');if(!form)return;var serv=P.find('services',form.elements.serviceId.value);var sid=serv?serv.id:'';root.querySelectorAll('[data-addon-row]').forEach(function(r){var a=P.find('addons',r.dataset.addonRow);r.style.display=(a&&(!(a.serviceIds||[]).length||a.serviceIds.includes(sid)))?'flex':'none';if(r.style.display==='none'){var cb=r.querySelector('input[type=checkbox]');if(cb)cb.checked=false;}});var total=Number(form.elements.priceOverride.value===''?(serv?serv.price:0):form.elements.priceOverride.value);root.querySelectorAll('input[name="addonCheck"]:checked').forEach(function(el){var a=P.find('addons',el.value);var qtyField=form.elements['qty_'+el.value];if(a){var qty=Number(qtyField?qtyField.value:1);if(a.thresholdQty>0&&qty>=a.thresholdQty){if(a.thresholdPrice==null){total=NaN;}else{total+=Number(a.thresholdPrice);}}else{total+=Number(a.price)*qty;}}});var el=root.querySelector('#booking-total');if(el)el.textContent=Number.isFinite(total)?P.money(total):'Configure o preço especial';}
@@ -177,7 +187,34 @@
 
   function action(el,ev){var type=el.dataset.action,id=el.dataset.id;switch(type){
     case 'page':P.page=el.dataset.page;P.render();window.scrollTo(0,0);break;
-    case 'new-client':returnToAppointment=modalState.type==='appointment';P.openModal('client');break;case 'history-client':P.openModal('history',id);break;case 'edit-client':P.openModal('client',id);break;
+    case 'new-client':returnToAppointment=modalState.type==='appointment';P.openModal('client');break;
+    case 'history-client':P.openModal('history',id);break;
+    case 'edit-client':P.openModal('client',id);break;
+    case 'delete-client':P.openModal('delete-client',id);break;
+    case 'confirm-delete-client':
+      var selected=P.find('clients',id);
+      if(!selected)break;
+      var historyCount=P.db.appointments.filter(function(a){return a.clientId===id;}).length;
+      if(historyCount){
+        selected.active=false;
+        selected.archivedAt=new Date().toISOString();
+        P.auditFinance('cliente','arquivada',id,{active:true},{active:false},'Preservar '+historyCount+' atendimentos');
+        notifySaved('Cliente arquivada. O histórico continua preservado.');
+      }else{
+        var originalClients=P.db.clients;
+        P.db.clients=originalClients.filter(function(x){return x.id!==id;});
+        if(!P.save()){P.db.clients=originalClients;break;}
+        P.closeModal();P.render();P.toast('Cliente excluída definitivamente.');
+      }
+      break;
+    case 'restore-client':
+      var restored=P.find('clients',id);
+      if(restored){
+        restored.active=true;restored.archivedAt=null;
+        P.auditFinance('cliente','restaurada',id,{active:false},{active:true},'Restaurada no painel');
+        if(P.save()){P.render();P.toast('Cliente restaurada para novos agendamentos.');}
+      }
+      break;
     case 'new-item':P.openModal('item');break;case 'edit-item':P.openModal('item',id);break;
     case 'new-appt':P.openModal('appointment');break;case 'edit-appt':P.openModal('appointment',id);break;case 'show-appt':P.openModal('view-appt',id);break;
     case 'complete':P.openModal('complete',id);break;case 'receive':P.openModal('receive',id);break;
@@ -204,7 +241,7 @@
     case 'delete-block':P.db.blocks=P.db.blocks.filter(function(x){return x.id!==id;});notifySaved('Bloqueio removido.');break;
     case 'install-app':if(P.installApp)P.installApp();else P.toast('A instalação ainda está sendo preparada.');break;
     case 'pdf':if(P.generatePDF)P.generatePDF();else P.toast('Gerador de PDF indisponível.','error');break;case 'csv':reportCSV();break;case 'backup':P.exportJSON();break;
-    case 'reset':if(confirm('Excluir TODOS os dados locais deste navegador? Faça backup antes. Esta ação é irreversível.')){P.db=P.defaults();P.save();P.render();P.toast('Dados locais reiniciados.');}break;
+    case 'reset':if(confirm('Excluir TODOS os dados locais deste navegador? Faça backup antes. Esta ação é irreversível.')){P.db=P.defaults();P.save();try{localStorage.setItem(P.publicInboxKey,'[]');}catch(e){}P.render();P.toast('Dados locais reiniciados.');}break;
   }}
   document.addEventListener('click',function(ev){var b=ev.target.closest('[data-action]');if(!b)return;if(b.dataset.action==='backdrop'&&ev.target!==b)return;ev.preventDefault();action(b,ev);});
   document.addEventListener('submit',function(ev){var form=ev.target.closest('[data-form]');if(!form)return;ev.preventDefault();var tag=form.dataset.form;try{if(tag==='client')submitClient(form);else if(tag==='item')submitItem(form);else if(tag==='appointment')submitAppointment(form);else if(tag==='complete')submitComplete(form);else if(tag==='receive')submitReceive(form);else if(tag==='expense')submitExpense(form);else if(tag==='edit-payment')submitPaymentEdit(form);else if(tag==='void-payment')submitFinanceVoid(form,true);else if(tag==='void-expense')submitFinanceVoid(form,false);else if(tag==='block')submitBlock(form);else if(tag==='settings'){var f=new FormData(form);P.db.settings={studio:String(f.get('studio')||'Pérola Leite Studio'),start:String(f.get('start')||'07:00'),end:String(f.get('end')||'20:00')};P.save();P.toast('Preferências salvas.');}}catch(err){console.error(err);P.toast('Não foi possível salvar. Verifique os campos.','error');}});
