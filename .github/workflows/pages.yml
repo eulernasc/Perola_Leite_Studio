@@ -24,6 +24,12 @@ jobs:
           node --check data.js
           node --check app.js
           node --check forms.js
+          node --check calendar-ui.js
+          node --check time-ui.js
+          node --check pdf.js
+          node --check pwa.js
+          node --check cadastro.js
+          node --check sw.js
           node --check tests/smoke.js
       - name: Validar regras de negócio
         run: node tests/smoke.js
