@@ -39,7 +39,8 @@ Os seletores de mês e dia usam o calendário personalizado do estúdio; seleç�
 - Página independente, sem menu administrativo, sem agendamentos, sem links para o painel, com campos de nome, CPF, telefone, rua, número, bairro, cidade, UF e complemento.
 - A interface valida CPF e telefone e permite testar o preenchimento com dados fictícios.
 - **Agora salva os cadastros fictícios em uma fila local** (`localStorage`) e o painel ADM importa essa fila quando aberto, atualizado ou quando a página pública registra em outra aba. O cadastro aparece em **Clientes** no mesmo navegador e perfil, sem Firebase.
-- **Excluir cliente:** clientes sem agendamentos são apagadas dos dados locais após confirmação; clientes com histórico são arquivadas e podem ser restauradas, preservando os lançamentos vinculados.
+- **Desativar cliente:** impede novos agendamentos sem remover cadastro ou histórico; é reversível pelo botão **Ativar**.
+- **Excluir definitivamente:** remove o cadastro mesmo com histórico. Apaga os dados pessoais da cliente dos agendamentos e comprovantes internos vinculados, preservando horários, serviços, valores e totais financeiros sem identificação pessoal. Exige confirmação específica e não permite restaurar; backups antigos feitos pelo usuário não são alterados.
 - Cadastros enviados por outro aparelho, outro perfil do navegador ou pela versão PWA com armazenamento isolado não aparecem no ADM nesta fase. Não use dados reais.
 - O site administrativo continua **público e sem login** nesta versão. A ausência de links administrativos na página pública não impede que alguém conhecendo o endereço abra o painel; o acesso administrativo só será protegido com autenticação e regras de backend.
 - Para permitir que clientes façam cadastros em aparelhos diferentes e os dados apareçam no painel da dona, será indispensável conectar um banco de dados com controles de acesso (etapa Firebase, ainda não implementada).
