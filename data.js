@@ -82,33 +82,81 @@
     try{localStorage.setItem(P.publicInboxKey,'[]');}catch(e){}
     return accepted;
   };
-  P.removeClient=function(id){
-    var client=P.find('clients',id);
-    if(!client)return {ok:false,reason:'not-found'};
-    var appointments=P.db.appointments.filter(function(a){return a.clientId===id;}).length;
-    if(appointments){
-      var oldActive=client.active,oldArchive=client.archivedAt;
-      client.active=false;client.archivedAt=new Date().toISOString();
-      if(!P.save()){client.active=oldActive;client.archivedAt=oldArchive;return {ok:false,reason:'storage'};}
-      P.auditFinance('cliente','arquivada',id,{active:true},{active:false},'Preservar '+appointments+' atendimentos');
-      P.save();
-      return {ok:true,kind:'archived',appointments:appointments};
-    }
-    var previous=P.db.clients;
-    P.db.clients=previous.filter(function(c){return c.id!==id;});
-    if(!P.save()){P.db.clients=previous;return {ok:false,reason:'storage'};}
-    return {ok:true,kind:'deleted',appointments:0};
-  };
-  P.restoreClient=function(id){
+  // Desativar é reversível: não muda os lançamentos nem remove o cadastro.
+  P.setClientActive=function(id,active){
     var client=P.find('clients',id);
     if(!client)return false;
-    var active=client.active,archive=client.archivedAt;
-    client.active=true;client.archivedAt=null;
-    if(!P.save()){client.active=active;client.archivedAt=archive;return false;}
-    P.auditFinance('cliente','restaurada',id,{active:false},{active:true},'Restaurada no painel');
+    var previous={active:client.active,archivedAt:client.archivedAt};
+    client.active=!!active;
+    client.archivedAt=active?null:new Date().toISOString();
+    if(!P.save()){
+      client.active=previous.active;
+      client.archivedAt=previous.archivedAt;
+      return false;
+    }
+    P.auditFinance('cliente',active?'reativada':'desativada',id,{active:previous.active!==false},{active:!!active},active?'Cliente reativada':'Cliente desativada para novos atendimentos');
     P.save();
     return true;
   };
+  P.restoreClient=function(id){return P.setClientActive(id,true);};
+  // Excluir é permanente: apagar o cadastro e dados pessoais dos vínculos,
+  // preservando somente os valores financeiros e a ocupação histórica da agenda.
+  P.deleteClientPermanently=function(id){
+    var client=P.find('clients',id);
+    if(!client)return {ok:false,reason:'not-found'};
+    var cpf=P.digits(client.cpf);
+    var previous=JSON.stringify(P.db);
+    var appointmentIds={};
+    var appts=0,payments=0;
+    function erasePersonal(snapshot){
+      if(!snapshot||typeof snapshot!=='object')return snapshot;
+      var clean=Object.assign({},snapshot);
+      ['clientName','name','cpf','address','street','number','neighborhood','city','state','complement','phone','email'].forEach(function(k){
+        if(Object.prototype.hasOwnProperty.call(clean,k))clean[k]='';
+      });
+      clean.clientName='Cliente excluída';
+      return clean;
+    }
+    P.db.appointments.forEach(function(a){
+      if(a.clientId!==id)return;
+      appointmentIds[a.id]=true;appts++;
+      a.clientId=null;
+      if(a.snapshot)a.snapshot=erasePersonal(a.snapshot);
+      if(a.clientName)a.clientName='Cliente excluída';
+      if(a.notes)a.notes='';
+    });
+    P.db.payments.forEach(function(p){
+      if(!appointmentIds[p.appointmentId]&&p.clientId!==id)return;
+      payments++;
+      if(p.snapshot)p.snapshot=erasePersonal(p.snapshot);
+      if(p.clientName)p.clientName='Cliente excluída';
+      if(p.clientId===id)p.clientId=null;
+    });
+    P.db.clients=P.db.clients.filter(function(c){return c.id!==id;});
+    // Remove auditoria identificável do cadastro, sem apagar os logs financeiros.
+    if(Array.isArray(P.db.auditLog)){
+      P.db.auditLog=P.db.auditLog.filter(function(log){
+        return !(log.kind==='cliente'&&log.recordId===id);
+      });
+    }
+    P.auditFinance('cliente','exclusao-definitiva',P.uid(),null,{agendamentosPreservados:appts,recebimentosPreservados:payments},'Cadastro e identificação pessoal eliminados; totais financeiros preservados');
+    if(!P.save()){
+      P.db=JSON.parse(previous);
+      return {ok:false,reason:'storage'};
+    }
+    // Evita que um cadastro ainda na fila pública seja importado novamente.
+    try{
+      var queue=JSON.parse(localStorage.getItem(P.publicInboxKey)||'[]');
+      if(Array.isArray(queue)){
+        localStorage.setItem(P.publicInboxKey,JSON.stringify(queue.filter(function(c){
+          return c.id!==id&&P.digits(c.cpf)!==cpf;
+        })));
+      }
+    }catch(e){}
+    return {ok:true,kind:'deleted',appointments:appts,payments:payments};
+  };
+  P.removeClient=function(id){return P.deleteClientPermanently(id);};
+
   P.find = function (type,id) {return (P.db[type]||[]).find(function(x){return x.id===id;});};
   P.active = function (type) {return (P.db[type]||[]).filter(function(x){return x.active!==false;});};
   P.items = function (a) {var serv=P.find('services',a.serviceId);var price=Number(a.priceOverride!=null?a.priceOverride:(a.basePrice!=null?a.basePrice:(serv?serv.price:0)));var rows=[{name:a.serviceName||(serv?serv.name:'Serviço removido'),price:price,qty:1,minutes:serv?Number(serv.minutes):90}];(a.addons||[]).forEach(function(x){var def=P.find('addons',x.id)||{};rows.push({name:x.name||def.name||'Complemento',price:x.specialTotal!=null?Number(x.specialTotal):Number(x.price),qty:x.specialTotal!=null?1:Number(x.qty)||1,displayQty:Number(x.qty)||1,minutes:Number(x.minutes)||0});});return rows;};
