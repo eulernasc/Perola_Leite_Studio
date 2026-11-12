@@ -46,17 +46,19 @@
       '<div class="field full">'+field('complement','Complemento (opcional)',c.complement,'text','maxlength="120" placeholder="Apartamento, casa, bloco, referência..."')+'</div></div>'+
       (legacy?'<div class="notice" style="margin-top:15px"><strong>Cadastro anterior preservado</strong>Endereço antigo: '+E(c.address)+'. Você pode completar os novos campos ou manter o registro anterior sem perder dados.</div>':'')+
       '<p class="hint" style="margin-top:14px">Os dados ficarão vinculados aos lançamentos e relatórios. Nesta versão de testes, use apenas informações fictícias.</p>';
-    frame(id?'Editar cliente':'Nova cliente','client',body,formButtons('Salvar cliente',id?'<button type="button" class="btn danger" data-action="delete-client" data-id="'+E(id)+'">'+I('trash')+'Excluir cliente</button>':''));
+    var buttons=id?'<button type="button" class="btn soft" data-action="'+(c.active===false?'restore-client':'deactivate-client')+'" data-id="'+E(id)+'">'+I(c.active===false?'check':'minus')+(c.active===false?'Ativar':'Desativar')+'</button><button type="button" class="btn danger" data-action="delete-client" data-id="'+E(id)+'">'+I('trash')+'Excluir definitivamente</button>':'';
+    frame(id?'Editar cliente':'Nova cliente','client',body,formButtons('Salvar cliente',buttons));
   }
   function clientDeleteModal(id){
-    var client=P.find('clients',id);if(!client)return;
-    var count=P.db.appointments.filter(function(a){return a.clientId===id;}).length;
-    var linked=count>0;
-    var body='<div class="notice"><strong>'+(linked?'Esta cliente possui histórico':'Cadastro sem histórico')+'</strong>'+
-      (linked?'Existem '+count+' agendamento(s) vinculados a este cadastro. Para não perder informações de atendimentos, a cliente será arquivada e removida da lista ativa. Você poderá restaurá-la depois.':'Este cadastro não possui agendamentos. Ao confirmar, ele será apagado dos dados locais deste navegador. Esta ação não poderá ser desfeita.')+'</div>'+
-      '<div class="mini-item" style="margin-top:16px"><span class="grow"><strong>'+E(client.name)+'</strong><small>CPF: '+E(P.cpfFormat(client.cpf))+'</small></span></div>';
-    var label=linked?'Arquivar cliente':'Excluir definitivamente';
-    frame('Excluir cliente',null,body,'<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn danger" data-action="confirm-delete-client" data-id="'+E(id)+'">'+I('trash')+label+'</button>');
+    var client=P.find('clients',id);
+    if(!client)return;
+    var appts=P.db.appointments.filter(function(a){return a.clientId===id;});
+    var ids=appts.map(function(a){return a.id;});
+    var payments=P.db.payments.filter(function(p){return ids.includes(p.appointmentId);});
+    var body='<div class="notice"><strong>Exclusão definitiva e irreversível</strong>Este cadastro será removido, mesmo que a cliente tenha histórico. Nome, CPF, telefone e endereço serão retirados dos registros vinculados. Os horários, serviços, valores recebidos e totais financeiros permanecerão, sem identificar a cliente.</div>'+
+      '<div class="mini-item" style="margin-top:16px"><span class="grow"><strong>'+E(client.name)+'</strong><small>CPF: '+E(P.cpfFormat(client.cpf))+' · '+appts.length+' agendamento(s) · '+payments.length+' pagamento(s)</small></span></div>'+
+      '<label class="toggle" style="margin-top:16px"><input type="checkbox" id="confirm-client-destruction"><span>Entendo que a exclusão é definitiva e que os dados pessoais desta cliente não poderão ser recuperados pelo sistema.</span></label>';
+    frame('Excluir cliente definitivamente',null,body,'<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn danger" data-action="confirm-delete-client" data-id="'+E(id)+'">'+I('trash')+'Excluir definitivamente</button>');
   }
   function itemModal(id){var type=P.catalogType;var item=P.find(type,id)||{};modalState.image=item.image||'';var isService=type==='services';var body='<div class="field-grid">'+field('name','Nome '+(isService?'do serviço':'do complemento')+' *',item.name,'text','required maxlength="110"')+field('price','Valor em R$ *',item.price===undefined?'':item.price,'number','required min="0" step="0.01"')+field('minutes','Duração '+(isService?'em minutos *':'adicional em minutos'),item.minutes===undefined?'':item.minutes,'number',isService?'required min="1"':'min="0"')+(isService?field('category','Categoria',item.category||'Unhas','text','maxlength="70"'):'<div class="field"><label>Tipo de cobrança</label><label class="toggle"><input type="checkbox" name="perUnit" '+(item.perUnit?'checked':'')+'> Por unidade (ex.: unha quebrada)</label></div>')+'<div class="field full">'+textarea('description','Descrição / observações',item.description)+'</div><div class="field full"><label class="toggle"><input type="checkbox" name="startingAt" '+(item.startingAt?'checked':'')+'><span class="toggle-copy"><strong>Preço variável</strong><small>Marque se o valor puder mudar. O catálogo mostrará "A partir de R$ ...".</small></span></label></div>'+(isService?'':'<div class="field full">'+field('thresholdQty','A partir de quantas unidades aplicar preço especial?',item.thresholdQty||0,'number','min="0" step="1"')+'</div><div class="field full">'+field('thresholdPrice','Valor especial total (R$)',item.thresholdPrice==null?'':item.thresholdPrice,'number','min="0" step="0.01" placeholder="Definir antes de usar"')+'</div>')+imgPanel()+'</div>';
     if(!isService){body+='<hr class="form-divider"><h3>Disponibilidade do complemento</h3><p class="hint">Sem seleção, ficará disponível para todos os serviços.</p><div class="addons-picker">'+P.db.services.map(function(s){return '<label class="addon-row"><input type="checkbox" name="serviceIds" value="'+s.id+'" '+((item.serviceIds||[]).includes(s.id)?'checked':'')+'><span>'+E(s.name)+'</span></label>';}).join('')+'</div>';}
@@ -191,16 +193,24 @@
     case 'history-client':P.openModal('history',id);break;
     case 'edit-client':P.openModal('client',id);break;
     case 'delete-client':P.openModal('delete-client',id);break;
+    case 'deactivate-client':
+      var deactivating=P.find('clients',id);
+      if(deactivating&&confirm('Desativar '+deactivating.name+'? O cadastro e os históricos continuarão salvos e poderão ser reativados.')){
+        if(P.setClientActive(id,false)){P.closeModal();P.render();P.toast('Cliente desativada.');}
+        else P.toast('Não foi possível desativar esta cliente.','error');
+      }
+      break;
     case 'confirm-delete-client':
-      var removal=P.removeClient(id);
+      var acknowledged=root.querySelector('#confirm-client-destruction');
+      if(!acknowledged||!acknowledged.checked){P.toast('Confirme que entende a exclusão definitiva.','error');break;}
+      var removal=P.deleteClientPermanently(id);
       if(removal.ok){
-        P.closeModal();P.render();
-        P.toast(removal.kind==='archived'?'Cliente arquivada. O histórico continua preservado.':'Cliente excluída definitivamente.');
+        P.closeModal();P.render();P.toast('Cliente excluída definitivamente. Histórico financeiro preservado sem identificação.');
       }else P.toast('Não foi possível excluir esta cliente.','error');
       break;
     case 'restore-client':
-      if(P.restoreClient(id)){P.render();P.toast('Cliente restaurada para novos agendamentos.');}
-      else P.toast('Não foi possível restaurar esta cliente.','error');
+      if(P.restoreClient(id)){P.closeModal();P.render();P.toast('Cliente ativada novamente.');}
+      else P.toast('Não foi possível ativar esta cliente.','error');
       break;
     case 'new-item':P.openModal('item');break;case 'edit-item':P.openModal('item',id);break;
     case 'new-appt':P.openModal('appointment');break;case 'edit-appt':P.openModal('appointment',id);break;case 'show-appt':P.openModal('view-appt',id);break;
